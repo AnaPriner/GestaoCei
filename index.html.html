@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CEI — Gestão de Projetos &amp; Demandas</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- [ALTERAÇÃO] Biblioteca SheetJS para importação de planilhas Excel -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --verde:#0B514F;--lima:#97D700;--vl:#e8f5f4;--ll:#f0f9d4;
+  --danger:#e53935;--dl:#fce8e8;--warn:#f57c00;--wl:#fff3e0;
+  --ok:#2e7d32;--ol:#e8f5e9;--azul:#1565c0;--azull:#e3f2fd;
+  --bg:#f5f6f4;--card:#fff;--border:#e4e6e3;--text:#1a1f1a;--muted:#6b7268;
+  --sh:0 1px 3px rgba(11,81,79,.08),0 4px 16px rgba(11,81,79,.06);
+  --shl:0 8px 32px rgba(11,81,79,.12);
+  /* [ALTERAÇÃO] Cores para responsáveis Ana e Rafael */
+  --ana:#7b1fa2;--anal:#f3e5f5;
+  --rafael:#e65100;--rafaell:#fff3e0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--verde);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.logo{display:flex;align-items:center;gap:10px}
+.lm{width:30px;height:30px;background:var(--lima);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:13px;color:var(--verde)}
+.lt{font-family:'Syne',sans-serif;font-weight:700;font-size:15px;color:#fff}
+.sind{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.8);padding:4px 12px;border-radius:20px;background:rgba(255,255,255,.12)}
+.sdot{width:7px;height:7px;border-radius:50%;background:#888;transition:background .3s}
+.sdot.ok{background:var(--lima)}.sdot.saving{background:var(--warn);animation:pulse .7s infinite}.sdot.erro{background:var(--danger)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* LAYOUT */
+.layout{display:flex;min-height:calc(100vh - 52px)}
+.sidebar{width:220px;background:var(--card);border-right:1px solid var(--border);padding:16px 0;flex-shrink:0}
+.slbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:0 20px;margin:0 0 6px;display:block}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 12px;margin:0 8px 2px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s}
+.ni:hover{background:var(--vl);color:var(--verde)}.ni.active{background:var(--verde);color:#fff}
+.ni.dem.active{background:var(--azul)}
+/* [ALTERAÇÃO] Estilos de menu para responsáveis Ana e Rafael */
+.ni.ana:hover{background:var(--anal);color:var(--ana)}.ni.ana.active{background:var(--ana);color:#fff}
+.ni.rafael:hover{background:var(--rafaell);color:var(--rafael)}.ni.rafael.active{background:var(--rafael);color:#fff}
+.ni .ic{font-size:15px;width:18px;text-align:center}
+.nb{margin-left:auto;background:var(--lima);color:var(--verde);font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px}
+.nb.azul{background:var(--azull);color:var(--azul)}
+/* [ALTERAÇÃO] Badges coloridos para Ana e Rafael */
+.nb.ana{background:var(--anal);color:var(--ana)}
+.nb.rafael{background:var(--rafaell);color:var(--rafael)}
+.sdiv{height:1px;background:var(--border);margin:12px 8px}
+.main{flex:1;padding:20px 24px;overflow-y:auto;min-width:0}
+.view{display:none}.view.active{display:block}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.ptitle{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--verde)}
+.ptitle.azul{color:var(--azul)}
+/* [ALTERAÇÃO] Títulos coloridos para páginas de responsáveis */
+.ptitle.ana{color:var(--ana)}
+.ptitle.rafael{color:var(--rafael)}
+.psub{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;text-decoration:none}
+.bp{background:var(--lima);color:var(--verde)}.bp:hover{background:#84bf00}
+.bp-azul{background:var(--azul);color:#fff}.bp-azul:hover{background:#0d47a1}
+.bs{background:var(--card);color:var(--verde);border:1.5px solid var(--verde)}.bs:hover{background:var(--vl)}
+.bsm{padding:5px 11px;font-size:11px}
+.bteams{background:#5b5fc7;color:#fff}.bteams:hover{background:#4a4fb5}
+/* [ALTERAÇÃO] Botão de importação Excel */
+.btn-excel{background:#217346;color:#fff}.btn-excel:hover{background:#1a5c38}
+
+/* STATS */
+/* [ALTERAÇÃO] Grid de 3 colunas (removido quadro Atrasados) */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.sc{background:var(--card);border-radius:10px;padding:14px 16px;border:1px solid var(--border);box-shadow:var(--sh);position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--lima)}
+.sc.v::before{background:var(--verde)}.sc.w::before{background:var(--warn)}.sc.d::before{background:var(--ok)}.sc.a::before{background:var(--azul)}
+.sl2{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.sv{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--verde);line-height:1}
+.sc.w .sv{color:var(--warn)}.sc.d .sv{color:var(--ok)}.sc.a .sv{color:var(--azul)}
+/* [ALTERAÇÃO] Subtexto fracionário no dashboard */
+.ss{font-size:10px;color:var(--muted);margin-top:3px}
+.ss-frac{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.5}
+.ss-frac .frac-ana{color:var(--ana);font-weight:600}
+.ss-frac .frac-rafael{color:var(--rafael);font-weight:600}
+
+/* CARDS */
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.pc{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;transition:all .2s;cursor:pointer}
+.pc:hover{box-shadow:var(--shl);transform:translateY(-2px)}
+.pc.dem-card{border-left:3px solid var(--azul)}
+.pct{padding:14px 16px 10px;border-bottom:1px solid var(--border)}
+.pch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.pname{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--verde)}
+.pname.azul{color:var(--azul)}
+.sbadge{padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+.s-and{background:var(--ll);color:#3d5c00}.s-atr{background:var(--dl);color:var(--danger)}.s-con{background:var(--ol);color:var(--ok)}.s-pau{background:#f5f5f5;color:#666}.s-pla{background:#e3f2fd;color:#1565c0}.s-pen{background:#fff3e0;color:#e65100}.s-em{background:#e8eaf6;color:#3949ab}
+.pdesc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:8px}
+.pmeta{display:flex;gap:10px;flex-wrap:wrap}
+.mi{display:flex;align-items:center;gap:3px;font-size:10px;color:var(--muted)}
+/* [ALTERAÇÃO] Badge de responsável no card */
+.resp-badge{display:inline-flex;align-items:center;gap:3px;padding:1px 7px;border-radius:10px;font-size:9px;font-weight:700}
+.resp-ana{background:var(--anal);color:var(--ana)}
+.resp-rafael{background:var(--rafaell);color:var(--rafael)}
+.resp-ambos{background:#e8eaf6;color:#3949ab}
+.pbw{margin-top:8px}
+.pbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:3px}
+.pbar{height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.pfill{height:100%;background:var(--lima);border-radius:3px;transition:width .4s}.pfill.atr{background:var(--danger)}
+.pcb{padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
+.ptags{display:flex;gap:5px;flex-wrap:wrap}
+.tag{padding:2px 7px;border-radius:5px;font-size:9px;font-weight:500;background:var(--vl);color:var(--verde)}
+.tag.azul{background:var(--azull);color:var(--azul)}
+.pacts{display:flex;gap:4px}
+.ib{width:26px;height:26px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s}
+.ib:hover{background:var(--verde);color:#fff;border-color:var(--verde)}
+.plinks{display:flex;gap:5px;padding:0 16px 8px;flex-wrap:wrap}
+.lbtn{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:5px;font-size:10px;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:all .15s}
+.lt-t{background:#eef0fc;color:#5b5fc7}.lt-t:hover{background:#5b5fc7;color:#fff}
+.lt-p{background:var(--vl);color:var(--verde)}.lt-p:hover{background:var(--verde);color:#fff}
+
+/* FILTER */
+.fb{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.fbt{padding:5px 12px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s}
+.fbt:hover{border-color:var(--verde);color:var(--verde)}.fbt.active{background:var(--verde);color:#fff;border-color:var(--verde)}
+.fbt.azul-active{background:var(--azul);color:#fff;border-color:var(--azul)}
+/* [ALTERAÇÃO] Filtros ativos para páginas de responsáveis */
+.fbt.ana-active{background:var(--ana);color:#fff;border-color:var(--ana)}
+.fbt.rafael-active{background:var(--rafael);color:#fff;border-color:var(--rafael)}
+.si{padding:5px 11px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;font-family:'DM Sans',sans-serif;outline:none;width:180px;margin-left:auto}
+.si:focus{border-color:var(--verde)}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(11,81,79,.35);backdrop-filter:blur(4px);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px}
+.mo.open{display:flex}
+.md{background:#fff;border-radius:14px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shl);animation:mIn .2s ease}
+@keyframes mIn{from{opacity:0;transform:translateY(16px) scale(.97)}to{opacity:1;transform:none}}
+.mh{background:var(--verde);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;border-radius:14px 14px 0 0}
+.mh.azul{background:var(--azul)}
+.mtt{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:#fff}
+.mcl{width:28px;height:28px;border-radius:7px;background:rgba(255,255,255,.15);border:none;cursor:pointer;color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.mcl:hover{background:rgba(255,255,255,.25)}
+.mb{padding:20px}.mft{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.fr.full{grid-template-columns:1fr}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fc{padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;transition:border .15s;outline:none}
+.fc:focus{border-color:var(--verde)}
+textarea.fc{resize:vertical;min-height:80px}
+.fst{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;color:var(--verde);padding:10px 0 7px;border-top:1px solid var(--border);margin-top:4px}
+.fst.azul{color:var(--azul)}
+
+/* DETAIL */
+.dh{background:var(--verde);border-radius:10px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:flex-start;justify-content:space-between}
+.dh.azul{background:var(--azul)}
+.dt{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:5px}
+.dmeta{display:flex;gap:12px;flex-wrap:wrap}
+.dmi{font-size:11px;color:rgba(255,255,255,.7);display:flex;align-items:center;gap:3px}
+.dmi strong{color:#fff}
+.dgrid{display:grid;grid-template-columns:1fr 300px;gap:16px}
+.dcard{background:var(--card);border-radius:10px;border:1px solid var(--border);box-shadow:var(--sh);overflow:hidden;margin-bottom:14px}
+.dcard:last-child{margin-bottom:0}
+.dch{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.dct{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--verde)}
+.dct.azul{color:var(--azul)}
+.dcb{padding:14px 16px}
+
+/* TABS */
+.dtabs{display:flex;gap:4px;background:var(--border);border-radius:8px;padding:3px;margin-bottom:16px}
+.dtab{flex:1;padding:7px;border-radius:6px;border:none;background:transparent;cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);transition:all .15s;font-family:'DM Sans',sans-serif}
+.dtab.active{background:#fff;color:var(--verde);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+
+/* UPDATES */
+.ulist{display:flex;flex-direction:column}
+.uitem{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.uitem:last-child{border-bottom:none}
+.udot{width:8px;height:8px;border-radius:50%;background:var(--lima);flex-shrink:0;margin-top:4px;border:2px solid var(--verde)}
+.ucont{flex:1}
+.utxt{font-size:12px;color:var(--text);line-height:1.5;margin-bottom:3px}
+.umeta{font-size:10px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.uaut{font-weight:500;color:var(--verde)}
+
+/* LINKS */
+.lrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.lrow:last-child{border-bottom:none}
+.llbl{font-size:11px;color:var(--muted)}
+.la{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none;border:none;cursor:pointer;transition:all .15s}
+.la-t{background:#eef0fc;color:#5b5fc7}.la-t:hover{background:#5b5fc7;color:#fff}
+.la-p{background:var(--vl);color:var(--verde)}.la-p:hover{background:var(--verde);color:#fff}
+.la-off{background:#f5f5f5;color:#bbb;cursor:not-allowed}
+.la-r{background:var(--ol);color:var(--ok)}.la-r:hover{background:var(--ok);color:#fff}
+
+/* KANBAN */
+.kb{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kcol{background:var(--bg);border-radius:8px;padding:12px}
+.kch{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.kct{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.knum{width:18px;height:18px;border-radius:50%;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;background:var(--verde);color:#fff}
+.kcard{background:#fff;border-radius:7px;padding:10px;margin-bottom:6px;border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.kcard:hover{box-shadow:var(--sh);transform:translateY(-1px)}
+.kcn{font-size:12px;font-weight:600;color:var(--verde);margin-bottom:4px}
+.kpbar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.kpfill{height:100%;background:var(--lima);border-radius:2px}
+
+/* RELATÓRIO */
+.rs{background:var(--bg);border-radius:8px;padding:14px;margin-bottom:14px}
+.rst{font-size:11px;font-weight:700;color:var(--verde);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+
+/* ARQUIVO */
+.arquivo-box{background:var(--ll);border-radius:8px;padding:14px;border-left:3px solid var(--lima);margin-bottom:10px}
+.arquivo-title{font-size:11px;font-weight:700;color:#3d5c00;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.arquivo-text{font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap}
+
+/* MISC */
+.empty{text-align:center;padding:48px 16px;color:var(--muted)}
+.ei{font-size:40px;margin-bottom:10px}
+.et{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--verde);margin-bottom:4px}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--verde);color:#fff;padding:10px 18px;border-radius:8px;font-size:12px;font-weight:500;box-shadow:var(--shl);z-index:2000;display:none;align-items:center;gap:6px}
+.toast.show{display:flex}.tl{background:var(--lima);color:var(--verde)}
+.tipo-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.tipo-proj{background:var(--ll);color:#3d5c00}
+.tipo-dem{background:var(--azull);color:var(--azul)}
+
+/* [ALTERAÇÃO] Modal de importação Excel */
+.import-zone{border:2px dashed var(--border);border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.import-zone:hover,.import-zone.drag{border-color:var(--verde);background:var(--vl)}
+.import-zone input[type=file]{display:none}
+.import-preview{margin-top:12px;max-height:200px;overflow-y:auto;font-size:11px}
+.import-preview table{width:100%;border-collapse:collapse}
+.import-preview th{background:var(--verde);color:#fff;padding:5px 8px;text-align:left;font-size:10px}
+.import-preview td{padding:5px 8px;border-bottom:1px solid var(--border);font-size:11px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">
+    <div class="lm">P</div>
+    <span class="lt">priner</span>
+    <span style="width:1px;height:20px;background:rgba(255,255,255,.2);margin:0 8px"></span>
+    <span style="font-size:12px;color:rgba(255,255,255,.7)">CEI · Gestão</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="sind"><div class="sdot" id="saveDot"></div><span id="saveText">Conectando...</span></div>
+    <span style="font-size:11px;color:rgba(255,255,255,.5)" id="topDate"></span>
+  </div>
+</div>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div style="padding:0 8px;margin-bottom:8px">
+      <span class="slbl" style="padding:0 12px;margin-bottom:8px">Menu</span>
+      <div class="ni active" id="ni-dashboard" onclick="showView('dashboard')"><span class="ic">📊</span>Dashboard</div>
+    </div>
+    <div class="sdiv"></div>
+    <div style="padding:0 8px;margin-bottom:8px">
+      <span class="slbl" style="padding:0 12px;margin-bottom:8px">Projetos</span>
+      <div class="ni" id="ni-projetos" onclick="showView('projetos')"><span class="ic">📁</span>Todos<span class="nb" id="badgeP">0</span></div>
+      <div class="ni" id="ni-kanban" onclick="showView('kanban')"><span class="ic">🗂️</span>Kanban</div>
+      <div class="ni" onclick="filterSB('andamento','p')"><span class="ic">🟢</span>Em andamento</div>
+      <div class="ni" onclick="filterSB('atrasado','p')"><span class="ic">🔴</span>Atrasados</div>
+      <div class="ni" onclick="filterSB('concluido','p')"><span class="ic">✅</span>Concluídos</div>
+    </div>
+    <div class="sdiv"></div>
+    <div style="padding:0 8px;margin-bottom:8px">
+      <span class="slbl" style="padding:0 12px;margin-bottom:8px">Demandas</span>
+      <div class="ni dem" id="ni-demandas" onclick="showView('demandas')"><span class="ic">⚡</span>Todas<span class="nb azul" id="badgeD">0</span></div>
+      <div class="ni dem" onclick="filterSB('pendente','d')"><span class="ic">🟡</span>Pendentes</div>
+      <div class="ni dem" onclick="filterSB('em-andamento','d')"><span class="ic">🔵</span>Em execução</div>
+      <div class="ni dem" onclick="filterSB('resolvida','d')"><span class="ic">✅</span>Resolvidas</div>
+    </div>
+    <div class="sdiv"></div>
+    <!-- [ALTERAÇÃO] Seção de responsáveis no menu lateral -->
+    <div style="padding:0 8px;margin-bottom:8px">
+      <span class="slbl" style="padding:0 12px;margin-bottom:8px">Responsáveis</span>
+      <div class="ni ana" id="ni-ana" onclick="showView('ana')">
+        <span class="ic">👩</span>Ana
+        <span class="nb ana" id="badgeAna">0</span>
+      </div>
+      <div class="ni rafael" id="ni-rafael" onclick="showView('rafael')">
+        <span class="ic">👨</span>Rafael
+        <span class="nb rafael" id="badgeRafael">0</span>
+      </div>
+    </div>
+    <div class="sdiv"></div>
+    <div style="padding:0 8px">
+      <span class="slbl" style="padding:0 12px;margin-bottom:8px">Ações</span>
+      <div class="ni" onclick="openModal('projeto')"><span class="ic">➕</span>Novo projeto</div>
+      <div class="ni dem" onclick="openModal('demanda')"><span class="ic">⚡</span>Nova demanda</div>
+      <!-- [ALTERAÇÃO] Botão de importação via Excel no menu -->
+      <div class="ni" onclick="openImport()"><span class="ic">📥</span>Importar Excel</div>
+      <div class="ni" onclick="loadAll()"><span class="ic">🔄</span>Atualizar</div>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="view active" id="view-dashboard">
+      <div class="ph"><div><div class="ptitle">Dashboard</div><div class="psub" id="dashSub">Carregando...</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn bp" onclick="openModal('projeto')">+ Projeto</button>
+          <button class="btn bp-azul" onclick="openModal('demanda')">⚡ Demanda</button>
+          <!-- [ALTERAÇÃO] Botão de importação Excel no header do dashboard -->
+          <button class="btn btn-excel" onclick="openImport()">📥 Importar Excel</button>
+        </div>
+      </div>
+      <!-- [ALTERAÇÃO] statsGrid agora tem 3 colunas (sem Atrasados) -->
+      <div class="stats" id="statsGrid"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="dcard"><div class="dch"><span class="dct">Projetos recentes</span><button class="btn bs bsm" onclick="showView('projetos')">Ver todos</button></div><div class="dcb" id="recP"></div></div>
+        <div class="dcard"><div class="dch"><span class="dct" style="color:var(--azul)">Demandas recentes</span><button class="btn bs bsm" onclick="showView('demandas')">Ver todas</button></div><div class="dcb" id="recD"></div></div>
+      </div>
+    </div>
+
+    <!-- PROJETOS -->
+    <div class="view" id="view-projetos">
+      <div class="ph">
+        <div><div class="ptitle">Projetos</div><div class="psub" id="pCount"></div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:3px;background:var(--border);border-radius:7px;padding:3px">
+            <button class="fbt active" onclick="setVM('cards',this,'p')" style="padding:4px 9px;border-radius:5px;border:none">⊞ Cards</button>
+            <button class="fbt" onclick="setVM('lista',this,'p')" style="padding:4px 9px;border-radius:5px;border:none">☰ Lista</button>
+          </div>
+          <button class="btn bp" onclick="openModal('projeto')">+ Novo Projeto</button>
+        </div>
+      </div>
+      <div class="fb">
+        <button class="fbt active" onclick="filterP('todos',this)">Todos</button>
+        <button class="fbt" onclick="filterP('andamento',this)">Em andamento</button>
+        <button class="fbt" onclick="filterP('atrasado',this)">Atrasados</button>
+        <button class="fbt" onclick="filterP('concluido',this)">Concluídos</button>
+        <button class="fbt" onclick="filterP('planejamento',this)">Planejamento</button>
+        <input class="si" placeholder="🔍 Buscar..." oninput="searchP(this.value,'p')">
+      </div>
+      <div id="pContainer"></div>
+    </div>
+
+    <!-- KANBAN -->
+    <div class="view" id="view-kanban">
+      <div class="ph"><div><div class="ptitle">Kanban</div><div class="psub">Projetos por status</div></div><button class="btn bp" onclick="openModal('projeto')">+ Novo Projeto</button></div>
+      <div class="kb" id="kanbanBoard"></div>
+    </div>
+
+    <!-- DEMANDAS -->
+    <div class="view" id="view-demandas">
+      <div class="ph">
+        <div><div class="ptitle azul">Demandas</div><div class="psub" id="dCount"></div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:3px;background:var(--border);border-radius:7px;padding:3px">
+            <button class="fbt active" onclick="setVM('cards',this,'d')" style="padding:4px 9px;border-radius:5px;border:none">⊞ Cards</button>
+            <button class="fbt" onclick="setVM('lista',this,'d')" style="padding:4px 9px;border-radius:5px;border:none">☰ Lista</button>
+          </div>
+          <button class="btn bp-azul" onclick="openModal('demanda')">⚡ Nova Demanda</button>
+        </div>
+      </div>
+      <div class="fb">
+        <button class="fbt active" onclick="filterD('todos',this)">Todas</button>
+        <button class="fbt" onclick="filterD('pendente',this)">Pendentes</button>
+        <button class="fbt" onclick="filterD('em-andamento',this)">Em execução</button>
+        <button class="fbt" onclick="filterD('resolvida',this)">Resolvidas</button>
+        <input class="si" placeholder="🔍 Buscar..." oninput="searchP(this.value,'d')">
+      </div>
+      <div id="dContainer"></div>
+    </div>
+
+    <!-- [ALTERAÇÃO] VIEW ANA — página exclusiva para projetos/demandas da Ana -->
+    <div class="view" id="view-ana">
+      <div class="ph">
+        <div>
+          <div class="ptitle ana">👩 Ana</div>
+          <div class="psub" id="anaCount">Projetos e demandas de Ana</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:3px;background:var(--border);border-radius:7px;padding:3px">
+            <button class="fbt active" onclick="setVM('cards',this,'ana')" style="padding:4px 9px;border-radius:5px;border:none">⊞ Cards</button>
+            <button class="fbt" onclick="setVM('lista',this,'ana')" style="padding:4px 9px;border-radius:5px;border:none">☰ Lista</button>
+          </div>
+          <button class="btn bp" onclick="openModal('projeto')">+ Projeto</button>
+          <button class="btn bp-azul" onclick="openModal('demanda')">⚡ Demanda</button>
+        </div>
+      </div>
+      <div class="fb" id="fbAna">
+        <button class="fbt active" onclick="filterResp('todos',this,'ana')">Todos</button>
+        <button class="fbt" onclick="filterResp('projetos',this,'ana')">Projetos</button>
+        <button class="fbt" onclick="filterResp('demandas',this,'ana')">Demandas</button>
+        <button class="fbt" onclick="filterResp('andamento',this,'ana')">Em andamento</button>
+        <button class="fbt" onclick="filterResp('concluido',this,'ana')">Concluídos</button>
+        <input class="si" placeholder="🔍 Buscar..." oninput="searchResp(this.value,'ana')">
+      </div>
+      <div id="anaKanban" style="margin-bottom:16px"></div>
+      <div id="anaContainer"></div>
+    </div>
+
+    <!-- [ALTERAÇÃO] VIEW RAFAEL — página exclusiva para projetos/demandas do Rafael -->
+    <div class="view" id="view-rafael">
+      <div class="ph">
+        <div>
+          <div class="ptitle rafael">👨 Rafael</div>
+          <div class="psub" id="rafaelCount">Projetos e demandas de Rafael</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div style="display:flex;gap:3px;background:var(--border);border-radius:7px;padding:3px">
+            <button class="fbt active" onclick="setVM('cards',this,'rafael')" style="padding:4px 9px;border-radius:5px;border:none">⊞ Cards</button>
+            <button class="fbt" onclick="setVM('lista',this,'rafael')" style="padding:4px 9px;border-radius:5px;border:none">☰ Lista</button>
+          </div>
+          <button class="btn bp" onclick="openModal('projeto')">+ Projeto</button>
+          <button class="btn bp-azul" onclick="openModal('demanda')">⚡ Demanda</button>
+        </div>
+      </div>
+      <div class="fb" id="fbRafael">
+        <button class="fbt active" onclick="filterResp('todos',this,'rafael')">Todos</button>
+        <button class="fbt" onclick="filterResp('projetos',this,'rafael')">Projetos</button>
+        <button class="fbt" onclick="filterResp('demandas',this,'rafael')">Demandas</button>
+        <button class="fbt" onclick="filterResp('andamento',this,'rafael')">Em andamento</button>
+        <button class="fbt" onclick="filterResp('concluido',this,'rafael')">Concluídos</button>
+        <input class="si" placeholder="🔍 Buscar..." oninput="searchResp(this.value,'rafael')">
+      </div>
+      <div id="rafaelKanban" style="margin-bottom:16px"></div>
+      <div id="rafaelContainer"></div>
+    </div>
+
+    <!-- DETALHE PROJETO -->
+    <div class="view" id="view-detalhe">
+      <div style="margin-bottom:12px;display:flex;gap:8px">
+        <button class="btn bs bsm" onclick="voltarLista()">← Voltar</button>
+        <button class="btn bsm" style="background:#eef0fc;color:#5b5fc7;border:none" onclick="abrirRel(currentDId,'projeto')">📄 Relatório Final</button>
+      </div>
+      <div id="detContent"></div>
+    </div>
+
+    <!-- DETALHE DEMANDA -->
+    <div class="view" id="view-detalhe-dem">
+      <div style="margin-bottom:12px;display:flex;gap:8px">
+        <button class="btn bs bsm" onclick="voltarLista()">← Voltar</button>
+      </div>
+      <div id="detContentDem"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- MODAL NOVO PROJETO -->
+<div class="mo" id="mProjeto">
+  <div class="md">
+    <div class="mh"><span class="mtt" id="mPTitle">Novo Projeto</span><button class="mcl" onclick="closeM('projeto')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="ePId">
+      <div class="fr full"><div class="fg"><label class="fl">Nome do projeto *</label><input class="fc" id="fPNome" placeholder="Ex: Painel de Resultado Infra"></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Descrição do projeto</label><textarea class="fc" id="fPDesc" placeholder="Qual é o objetivo? O que será entregue?"></textarea></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Desenvolvimento (contexto técnico)</label><textarea class="fc" id="fPDev" placeholder="Ferramentas, abordagem técnica, detalhes de implementação..." style="min-height:80px"></textarea></div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Status</label><select class="fc" id="fPStatus"><option value="planejamento">Planejamento</option><option value="andamento">Em andamento</option><option value="pausado">Pausado</option><option value="atrasado">Atrasado</option><option value="concluido">Concluído</option></select></div>
+        <div class="fg"><label class="fl">Prioridade</label><select class="fc" id="fPPrio"><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Data início</label><input type="date" class="fc" id="fPInicio"></div>
+        <div class="fg"><label class="fl">Data prazo</label><input type="date" class="fc" id="fPPrazo"></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Progresso (%)</label><input type="number" class="fc" id="fPProg" min="0" max="100" placeholder="0"></div>
+        <!-- [ALTERAÇÃO] Campo responsável alterado para select com Ana, Rafael e Ambos -->
+        <div class="fg"><label class="fl">Responsável</label>
+          <select class="fc" id="fPResp">
+            <option value="">Selecione...</option>
+            <option value="Ana">Ana</option>
+            <option value="Rafael">Rafael</option>
+            <option value="Ambos">Ambos (Ana e Rafael)</option>
+          </select>
+        </div>
+      </div>
+      <div class="fr full"><div class="fg"><label class="fl">Tags (vírgula)</label><input class="fc" id="fPTags" placeholder="Power BI, RH, Infra"></div></div>
+      <div class="fst">🔗 Integração &amp; Origem</div>
+      <div class="fr full"><div class="fg"><label class="fl">Link Canal Teams</label><input class="fc" id="fPTeams" placeholder="https://teams.microsoft.com/..."></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Link Pasta SharePoint</label><input class="fc" id="fPPasta" placeholder="https://priner.sharepoint.com/..."></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Solicitante</label><input class="fc" id="fPSolic" placeholder="Nome ou e-mail"></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Resumo do e-mail de origem</label><textarea class="fc" id="fPEmail" placeholder="Resumo do e-mail..." style="min-height:60px"></textarea></div></div>
+      <div class="fst">📄 Arquivos da Pasta</div>
+      <div class="fr full"><div class="fg"><label class="fl">Conteúdo dos arquivos (cole o texto aqui)</label><textarea class="fc" id="fPArquivo" placeholder="Cole aqui o conteúdo dos documentos da pasta do projeto..." style="min-height:100px"></textarea></div></div>
+    </div>
+    <div class="mft"><button class="btn bs bsm" onclick="closeM('projeto')">Cancelar</button><button class="btn bp" id="btnSalvarP" onclick="salvarProjeto()">Salvar Projeto</button></div>
+  </div>
+</div>
+
+<!-- MODAL NOVA DEMANDA -->
+<div class="mo" id="mDemanda">
+  <div class="md" style="max-width:520px">
+    <div class="mh azul"><span class="mtt" id="mDTitle">Nova Demanda</span><button class="mcl" onclick="closeM('demanda')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="eDId">
+      <div class="fr full"><div class="fg"><label class="fl">Título da demanda *</label><input class="fc" id="fDNome" placeholder="Ex: Atualizar filtro do painel de resultado"></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Descrição</label><textarea class="fc" id="fDDesc" placeholder="O que precisa ser feito? Qual é o contexto?"></textarea></div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Status</label><select class="fc" id="fDStatus"><option value="pendente">Pendente</option><option value="em-andamento">Em execução</option><option value="resolvida">Resolvida</option></select></div>
+        <div class="fg"><label class="fl">Prioridade</label><select class="fc" id="fDPrio"><option value="alta">Alta</option><option value="media">Média</option><option value="baixa">Baixa</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Solicitante</label><input class="fc" id="fDSolic" placeholder="Nome ou e-mail"></div>
+        <div class="fg"><label class="fl">Data prazo</label><input type="date" class="fc" id="fDPrazo"></div>
+      </div>
+      <!-- [ALTERAÇÃO] Campo responsável na demanda: select Ana/Rafael/Ambos -->
+      <div class="fr">
+        <div class="fg"><label class="fl">Responsável</label>
+          <select class="fc" id="fDResp">
+            <option value="">Selecione...</option>
+            <option value="Ana">Ana</option>
+            <option value="Rafael">Rafael</option>
+            <option value="Ambos">Ambos (Ana e Rafael)</option>
+          </select>
+        </div>
+        <div class="fg"><label class="fl">Tags (vírgula)</label><input class="fc" id="fDTags" placeholder="Power BI, Ajuste, Urgente"></div>
+      </div>
+      <div class="fst azul">🔗 Origem</div>
+      <div class="fr full"><div class="fg"><label class="fl">Resumo do e-mail de origem</label><textarea class="fc" id="fDEmail" placeholder="Resumo do e-mail..." style="min-height:60px"></textarea></div></div>
+    </div>
+    <div class="mft"><button class="btn bs bsm" onclick="closeM('demanda')">Cancelar</button><button class="btn bp-azul" id="btnSalvarD" onclick="salvarDemanda()">Salvar Demanda</button></div>
+  </div>
+</div>
+
+<!-- MODAL ATUALIZAÇÃO PROJETO -->
+<div class="mo" id="mUpdP">
+  <div class="md" style="max-width:480px">
+    <div class="mh"><span class="mtt">Registrar Atualização</span><button class="mcl" onclick="closeM('updP')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="uPPId">
+      <div class="fr full"><div class="fg"><label class="fl">Atualização *</label><textarea class="fc" id="fPUpdT" placeholder="O que foi feito? Decisões? Próximos passos?" style="min-height:100px"></textarea></div></div>
+      <div class="fr full"><div class="fg"><label class="fl">Arquivos / Documentos (texto dos arquivos)</label><textarea class="fc" id="fPUpdArq" placeholder="Cole aqui o conteúdo de novos documentos adicionados à pasta..." style="min-height:80px"></textarea></div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Novo status</label><select class="fc" id="fPUpdS"><option value="">Manter atual</option><option value="planejamento">Planejamento</option><option value="andamento">Em andamento</option><option value="pausado">Pausado</option><option value="atrasado">Atrasado</option><option value="concluido">Concluído</option></select></div>
+        <div class="fg"><label class="fl">Novo progresso (%)</label><input type="number" class="fc" id="fPUpdP" min="0" max="100" placeholder="Vazio = manter"></div>
+      </div>
+    </div>
+    <div class="mft"><button class="btn bs bsm" onclick="closeM('updP')">Cancelar</button><button class="btn bp" id="btnUpdP" onclick="salvarUpdP()">Registrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL ATUALIZAÇÃO DEMANDA -->
+<div class="mo" id="mUpdD">
+  <div class="md" style="max-width:460px">
+    <div class="mh azul"><span class="mtt">Atualizar Demanda</span><button class="mcl" onclick="closeM('updD')">✕</button></div>
+    <div class="mb">
+      <input type="hidden" id="uDId">
+      <div class="fr full"><div class="fg"><label class="fl">Atualização *</label><textarea class="fc" id="fDUpdT" placeholder="O que foi feito?" style="min-height:100px"></textarea></div></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Novo status</label><select class="fc" id="fDUpdS"><option value="">Manter atual</option><option value="pendente">Pendente</option><option value="em-andamento">Em execução</option><option value="resolvida">Resolvida</option></select></div>
+      </div>
+    </div>
+    <div class="mft"><button class="btn bs bsm" onclick="closeM('updD')">Cancelar</button><button class="btn bp-azul" id="btnUpdD" onclick="salvarUpdD()">Registrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL RELATÓRIO -->
+<div class="mo" id="mRel">
+  <div class="md" style="max-width:640px">
+    <div class="mh" style="background:linear-gradient(135deg,#0B514F,#0d6b68)"><span class="mtt">📄 Relatório Final</span><button class="mcl" onclick="closeM('rel')">✕</button></div>
+    <div class="mb" id="relBody"></div>
+    <div class="mft"><button class="btn bs bsm" onclick="closeM('rel')">Fechar</button><button class="btn bp" onclick="copiarRel()">📋 Copiar texto</button></div>
+  </div>
+</div>
+
+<!-- [ALTERAÇÃO] MODAL IMPORTAÇÃO EXCEL -->
+<div class="mo" id="mImport">
+  <div class="md" style="max-width:640px">
+    <div class="mh" style="background:linear-gradient(135deg,#217346,#2e9e5b)">
+      <span class="mtt">📥 Importar dados via Excel</span>
+      <button class="mcl" onclick="closeM('import')">✕</button>
+    </div>
+    <div class="mb">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.6">
+        Selecione um arquivo <strong>.xlsx</strong> ou <strong>.xls</strong> com os dados de projetos ou demandas.
+        A planilha deve conter uma aba chamada <strong>"Projetos"</strong> e/ou <strong>"Demandas"</strong>.
+        Os dados serão importados localmente (sem sobrescrever o SharePoint automaticamente).
+      </p>
+      <div style="background:var(--vl);border-radius:8px;padding:12px;margin-bottom:14px;font-size:11px;color:var(--verde)">
+        <strong>Colunas esperadas — Projetos:</strong> Nome, Descricao, Status, Prioridade, Progresso, DataInicio, DataPrazo, Responsavel, Solicitante, Tags, LinkTeams, LinkPasta<br>
+        <strong>Colunas esperadas — Demandas:</strong> Nome, Descricao, Status, Prioridade, DataPrazo, Solicitante, Responsavel, Tags
+      </div>
+      <div class="import-zone" id="importZone" onclick="document.getElementById('fileInput').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(this.files[0])">
+        <div style="font-size:32px;margin-bottom:8px">📊</div>
+        <div style="font-size:13px;font-weight:600;color:var(--verde)">Clique ou arraste o arquivo Excel aqui</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Formatos aceitos: .xlsx, .xls</div>
+      </div>
+      <div id="importPreview" class="import-preview"></div>
+      <div id="importSummary" style="margin-top:10px;font-size:12px;color:var(--verde);font-weight:600"></div>
+    </div>
+    <div class="mft">
+      <button class="btn bs bsm" onclick="closeM('import')">Cancelar</button>
+      <button class="btn btn-excel" id="btnConfirmImport" onclick="confirmarImport()" style="display:none">✅ Confirmar Importação</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================================================================
+//  ⚙️ CONFIGURAÇÃO
+// ================================================================
+const SP_SITE = "https://prinerservicos.sharepoint.com/sites/PROJETOSCEI";
+const SP_LIST_P = "ProjetosCEI";
+const SP_LIST_D = "DemandasCEI";
+let SP_USER = "Ana Carolina";
+// ================================================================
+
+let projetos = [], demandas = [];
+let cFilterP = 'todos', cFilterD = 'todos', cSearchP = '', cSearchD = '';
+let cVMP = 'cards', cVMD = 'cards';
+// [ALTERAÇÃO] Estados de filtro para páginas de responsáveis
+let cFilterAna = 'todos', cSearchAna = '', cVMAna = 'cards';
+let cFilterRafael = 'todos', cSearchRafael = '', cVMRafael = 'cards';
+// [ALTERAÇÃO] Dados temporários para importação Excel
+let importData = { projetos: [], demandas: [] };
+
+let currentDId = null, currentTipo = 'projeto', editPId = null, editDId = null;
+let lastView = 'projetos';
+
+// ── SharePoint REST ──────────────────────────────────────────
+async function spDigest() {
+  const r = await fetch(`${SP_SITE}/_api/contextinfo`,{method:'POST',credentials:'include',headers:{'Accept':'application/json;odata=verbose'}});
+  return (await r.json()).d.GetContextWebInformation.FormDigestValue;
+}
+async function spGet(list, cols) {
+  const r = await fetch(`${SP_SITE}/_api/web/lists/getbytitle('${list}')/items?$select=${cols}&$orderby=ID desc&$top=500`,{credentials:'include',headers:{'Accept':'application/json;odata=verbose'}});
+  if(!r.ok) throw new Error(`GET ${r.status}`);
+  return (await r.json()).d.results;
+}
+async function spCreate(list, fields) {
+  const digest = await spDigest();
+  const body = {'__metadata':{'type':`SP.Data.${list}ListItem`},...fields};
+  const r = await fetch(`${SP_SITE}/_api/web/lists/getbytitle('${list}')/items`,{method:'POST',credentials:'include',headers:{'Accept':'application/json;odata=verbose','Content-Type':'application/json;odata=verbose','X-RequestDigest':digest},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(`CREATE ${r.status}`);
+  return (await r.json()).d;
+}
+async function spUpdate(list, id, fields) {
+  const digest = await spDigest();
+  const body = {'__metadata':{'type':`SP.Data.${list}ListItem`},...fields};
+  const r = await fetch(`${SP_SITE}/_api/web/lists/getbytitle('${list}')/items(${id})`,{method:'POST',credentials:'include',headers:{'Accept':'application/json;odata=verbose','Content-Type':'application/json;odata=verbose','X-RequestDigest':digest,'IF-MATCH':'*','X-HTTP-Method':'MERGE'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error(`UPDATE ${r.status}`);
+}
+async function spDelete(list, id) {
+  const digest = await spDigest();
+  const r = await fetch(`${SP_SITE}/_api/web/lists/getbytitle('${list}')/items(${id})`,{method:'POST',credentials:'include',headers:{'X-RequestDigest':digest,'IF-MATCH':'*','X-HTTP-Method':'DELETE'}});
+  if(!r.ok) throw new Error(`DELETE ${r.status}`);
+}
+
+// ── Conversões SP ─────────────────────────────────────────────
+// [ALTERAÇÃO] spToP agora lê campo Responsavel como texto livre (Ana/Rafael/Ambos)
+function spToP(i){return{id:i.ID,nome:i.Title||'',desc:i.Descricao||'',dev:i.Desenvolvimento||'',status:i.Status||'planejamento',prioridade:i.Prioridade||'media',progresso:i.Progresso||0,inicio:i.DataInicio?i.DataInicio.substring(0,10):'',prazo:i.DataPrazo?i.DataPrazo.substring(0,10):'',responsavel:i.Responsavel||'',tags:i.Tags?i.Tags.split(',').map(t=>t.trim()).filter(Boolean):[],linkTeams:i.LinkTeams||'',linkPasta:i.LinkPasta||'',solicitante:i.Solicitante||'',emailOrigem:i.EmailOrigem||'',arquivo:i.Arquivo||'',updates:i.Atualizacoes?JSON.parse(i.Atualizacoes):[]};}
+function pToSp(p){return{Title:p.nome,Descricao:p.desc||'',Desenvolvimento:p.dev||'',Status:p.status,Prioridade:p.prioridade,Progresso:p.progresso,DataInicio:p.inicio||null,DataPrazo:p.prazo||null,Responsavel:p.responsavel,Tags:(p.tags||[]).join(', '),LinkTeams:p.linkTeams||'',LinkPasta:p.linkPasta||'',Solicitante:p.solicitante||'',EmailOrigem:p.emailOrigem||'',Arquivo:p.arquivo||'',Atualizacoes:JSON.stringify(p.updates||[])};}
+// [ALTERAÇÃO] spToD agora lê campo Responsavel para demandas
+function spToD(i){return{id:i.ID,nome:i.Title||'',desc:i.Descricao||'',status:i.Status||'pendente',prioridade:i.Prioridade||'media',prazo:i.DataPrazo?i.DataPrazo.substring(0,10):'',solicitante:i.Solicitante||'',responsavel:i.Responsavel||'',tags:i.Tags?i.Tags.split(',').map(t=>t.trim()).filter(Boolean):[],emailOrigem:i.EmailOrigem||'',updates:i.Atualizacoes?JSON.parse(i.Atualizacoes):[]};}
+// [ALTERAÇÃO] dToSp inclui campo Responsavel
+function dToSp(d){return{Title:d.nome,Descricao:d.desc||'',Status:d.status,Prioridade:d.prioridade,DataPrazo:d.prazo||null,Solicitante:d.solicitante||'',Responsavel:d.responsavel||'',Tags:(d.tags||[]).join(', '),EmailOrigem:d.emailOrigem||'',Atualizacoes:JSON.stringify(d.updates||[])};}
+
+// ── Load ──────────────────────────────────────────────────────
+async function loadAll() {
+  setSave('Carregando...','saving');
+  try {
+    // [ALTERAÇÃO] Colunas de SP agora incluem Responsavel para demandas
+    const colsP = 'ID,Title,Descricao,Desenvolvimento,Status,Prioridade,Progresso,DataInicio,DataPrazo,Responsavel,Tags,LinkTeams,LinkPasta,Solicitante,EmailOrigem,Arquivo,Atualizacoes';
+    const colsD = 'ID,Title,Descricao,Status,Prioridade,DataPrazo,Solicitante,Responsavel,Tags,EmailOrigem,Atualizacoes';
+    [projetos, demandas] = await Promise.all([spGet(SP_LIST_P, colsP).then(r=>r.map(spToP)), spGet(SP_LIST_D, colsD).then(r=>r.map(spToD))]);
+    setSave('Conectado ✓','ok');
+    renderAll();
+    toast('✅ Dados carregados!');
+  } catch(e) {
+    setSave('Erro de conexão','erro');
+    toast('❌ Verifique a URL do SharePoint e as permissões.',false);
+    console.error(e);
+  }
+}
+function setSave(txt,state){document.getElementById('saveText').textContent=txt;document.getElementById('saveDot').className='sdot '+(state||'');}
+
+// [ALTERAÇÃO] renderAll chama todas as renders incluindo responsáveis
+function renderAll(){renderDash();renderProjetos();renderDemandas();renderAna();renderRafael();}
+
+// ── Views ─────────────────────────────────────────────────────
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  // [ALTERAÇÃO] Atualiza item ativo no sidebar incluindo ana e rafael
+  document.querySelectorAll('.ni').forEach(el=>el.classList.remove('active'));
+  const niMap = {dashboard:'ni-dashboard',projetos:'ni-projetos',kanban:'ni-kanban',demandas:'ni-demandas',ana:'ni-ana',rafael:'ni-rafael'};
+  if(niMap[v]) document.getElementById(niMap[v]).classList.add('active');
+  if(v==='dashboard') renderDash();
+  else if(v==='projetos') renderProjetos();
+  else if(v==='kanban') renderKanban();
+  else if(v==='demandas') renderDemandas();
+  // [ALTERAÇÃO] Renderiza páginas de responsáveis
+  else if(v==='ana') renderAna();
+  else if(v==='rafael') renderRafael();
+}
+function filterSB(s,tipo){if(tipo==='p'){cFilterP=s;showView('projetos');}else{cFilterD=s;showView('demandas');}}
+function voltarLista(){showView(lastView);}
+</script>
+
+<script>
+// ── Helpers de responsável ────────────────────────────────────
+// [ALTERAÇÃO] Verifica se item pertence a um responsável (Ana, Rafael ou Ambos)
+function pertenceA(item, resp) {
+  const r = (item.responsavel || '').toLowerCase();
+  if(resp === 'ana') return r === 'ana' || r === 'ambos';
+  if(resp === 'rafael') return r === 'rafael' || r === 'ambos';
+  return false;
+}
+// [ALTERAÇÃO] Retorna badge HTML de responsável
+function respBadge(responsavel) {
+  const r = (responsavel || '').toLowerCase();
+  if(r === 'ana') return `<span class="resp-badge resp-ana">👩 Ana</span>`;
+  if(r === 'rafael') return `<span class="resp-badge resp-rafael">👨 Rafael</span>`;
+  if(r === 'ambos') return `<span class="resp-badge resp-ambos">👥 Ambos</span>`;
+  return `<span class="resp-badge" style="background:#f5f5f5;color:#666">${responsavel||'—'}</span>`;
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+// [ALTERAÇÃO] renderDash: removido quadro Atrasados; adicionado frações Ana/Rafael
+function renderDash(){
+  const tp = projetos.length;
+  const ap = projetos.filter(p=>p.status==='andamento').length;
+  const td = demandas.length;
+  const pd = demandas.filter(d=>d.status==='pendente').length;
+
+  // [ALTERAÇÃO] Contagens por responsável para exibição fracionária
+  const tpAna = projetos.filter(p=>pertenceA(p,'ana')).length;
+  const tpRafael = projetos.filter(p=>pertenceA(p,'rafael')).length;
+  const apAna = projetos.filter(p=>p.status==='andamento'&&pertenceA(p,'ana')).length;
+  const apRafael = projetos.filter(p=>p.status==='andamento'&&pertenceA(p,'rafael')).length;
+  const tdAna = demandas.filter(d=>pertenceA(d,'ana')).length;
+  const tdRafael = demandas.filter(d=>pertenceA(d,'rafael')).length;
+
+  document.getElementById('dashSub').textContent=`${tp} projetos · ${td} demandas`;
+
+  // [ALTERAÇÃO] Grid com 3 cards (sem Atrasados), cada um com linha fracionária Ana/Rafael
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="sc">
+      <div class="sl2">Projetos</div>
+      <div class="sv">${tp}</div>
+      <div class="ss">cadastrados</div>
+      <div class="ss-frac"><span class="frac-ana">Ana: ${tpAna}</span> · <span class="frac-rafael">Rafael: ${tpRafael}</span></div>
+    </div>
+    <div class="sc v">
+      <div class="sl2">Em andamento</div>
+      <div class="sv">${ap}</div>
+      <div class="ss">projetos ativos</div>
+      <div class="ss-frac"><span class="frac-ana">Ana: ${apAna}</span> · <span class="frac-rafael">Rafael: ${apRafael}</span></div>
+    </div>
+    <div class="sc a">
+      <div class="sl2">Demandas pendentes</div>
+      <div class="sv">${pd}</div>
+      <div class="ss">aguardando execução</div>
+      <div class="ss-frac"><span class="frac-ana">Ana: ${tdAna}</span> · <span class="frac-rafael">Rafael: ${tdRafael}</span></div>
+    </div>`;
+
+  document.getElementById('recP').innerHTML=[...projetos].slice(0,4).map(p=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showDetalhe(${p.id},'projeto')">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--verde)">${p.nome}</div>
+        <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px">${respBadge(p.responsavel)}${p.solicitante?'· '+p.solicitante:''}</div>
+      </div>
+      <span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span>
+    </div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Nenhum projeto</div>';
+
+  document.getElementById('recD').innerHTML=[...demandas].slice(0,4).map(d=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="showDetalhe(${d.id},'demanda')">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:600;color:var(--azul)">${d.nome}</div>
+        <div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;margin-top:2px">${respBadge(d.responsavel)}${d.solicitante?'· '+d.solicitante:''}</div>
+      </div>
+      <span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span>
+    </div>`).join('')||'<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Nenhuma demanda</div>';
+
+  document.getElementById('badgeP').textContent=tp;
+  document.getElementById('badgeD').textContent=td;
+  // [ALTERAÇÃO] Atualiza badges de Ana e Rafael no sidebar
+  document.getElementById('badgeAna').textContent=projetos.filter(p=>pertenceA(p,'ana')).length + demandas.filter(d=>pertenceA(d,'ana')).length;
+  document.getElementById('badgeRafael').textContent=projetos.filter(p=>pertenceA(p,'rafael')).length + demandas.filter(d=>pertenceA(d,'rafael')).length;
+}
+
+// ── Projetos ──────────────────────────────────────────────────
+function getFP(){let l=[...projetos];if(cFilterP!=='todos')l=l.filter(p=>p.status===cFilterP);if(cSearchP)l=l.filter(p=>p.nome.toLowerCase().includes(cSearchP.toLowerCase())||(p.desc||'').toLowerCase().includes(cSearchP.toLowerCase())||(p.solicitante||'').toLowerCase().includes(cSearchP.toLowerCase()));return l;}
+function renderProjetos(){const f=getFP();document.getElementById('pCount').textContent=`${f.length} projeto${f.length!==1?'s':''}`;document.getElementById('badgeP').textContent=projetos.length;document.getElementById('pContainer').innerHTML=cVMP==='cards'?(f.length?`<div class="pg">${f.map(pCard).join('')}</div>`:emptyS('projeto')):renderListaP(f);}
+
+// [ALTERAÇÃO] pCard exibe badge de responsável
+function pCard(p){return`<div class="pc" onclick="showDetalhe(${p.id},'projeto')"><div class="pct"><div class="pch"><div class="pname">${p.nome}</div><span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span></div><div class="pdesc">${p.desc||'Sem descrição.'}</div><div class="pmeta"><div class="mi">📅 ${fd(p.prazo)}</div><div class="mi">${respBadge(p.responsavel)}</div>${p.solicitante?`<div class="mi">✉️ ${p.solicitante}</div>`:''}</div><div class="pbw"><div class="pbl"><span>Progresso</span><span style="font-weight:700">${p.progresso}%</span></div><div class="pbar"><div class="pfill ${p.status==='atrasado'?'atr':''}" style="width:${p.progresso}%"></div></div></div></div>${(p.linkTeams||p.linkPasta)?`<div class="plinks" onclick="event.stopPropagation()">${p.linkTeams?`<a href="${p.linkTeams}" target="_blank" class="lbtn lt-t">💬 Teams</a>`:''} ${p.linkPasta?`<a href="${p.linkPasta}" target="_blank" class="lbtn lt-p">📁 Pasta</a>`:''}</div>`:''}<div class="pcb" onclick="event.stopPropagation()"><div class="ptags">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div><div class="pacts"><button class="ib" onclick="openUpdP(${p.id})" title="Atualizar">💬</button><button class="ib" onclick="editP(${p.id})" title="Editar">✏️</button><button class="ib" onclick="delP(${p.id})" title="Excluir">🗑</button></div></div></div>`;}
+
+// [ALTERAÇÃO] renderListaP inclui coluna Responsável com badge
+function renderListaP(f){return f.length?`<div style="background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--sh)"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--verde)">${['Projeto','Status','Progresso','Prazo','Responsável','Ações'].map(h=>`<th style="padding:9px 12px;color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;text-align:left">${h}</th>`).join('')}</tr></thead><tbody>${f.map(p=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 12px;cursor:pointer" onclick="showDetalhe(${p.id},'projeto')"><strong style="color:var(--verde);font-size:12px">${p.nome}</strong><br><span style="font-size:10px;color:var(--muted)">${(p.desc||'').substring(0,50)}${(p.desc||'').length>50?'...':''}</span></td><td style="padding:10px 12px"><span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span></td><td style="padding:10px 12px;min-width:90px"><div style="display:flex;align-items:center;gap:5px"><div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:${p.progresso}%;height:100%;background:${p.progresso>=100?'var(--ok)':p.status==='atrasado'?'var(--danger)':'var(--lima)'};border-radius:3px"></div></div><span style="font-size:10px;font-weight:600">${p.progresso}%</span></div></td><td style="padding:10px 12px;font-size:11px">${fd(p.prazo)}</td><td style="padding:10px 12px">${respBadge(p.responsavel)}</td><td style="padding:10px 12px"><div style="display:flex;gap:3px"><button class="ib" onclick="showDetalhe(${p.id},'projeto')">👁</button><button class="ib" onclick="openUpdP(${p.id})">💬</button><button class="ib" onclick="editP(${p.id})">✏️</button><button class="ib" onclick="delP(${p.id})" style="color:var(--danger)">🗑</button></div></td></tr>`).join('')}</tbody></table></div>`:emptyS('projeto');}
+
+// ── Demandas ──────────────────────────────────────────────────
+function getFD(){let l=[...demandas];if(cFilterD!=='todos')l=l.filter(d=>d.status===cFilterD);if(cSearchD)l=l.filter(d=>d.nome.toLowerCase().includes(cSearchD.toLowerCase())||(d.desc||'').toLowerCase().includes(cSearchD.toLowerCase())||(d.solicitante||'').toLowerCase().includes(cSearchD.toLowerCase()));return l;}
+function renderDemandas(){const f=getFD();document.getElementById('dCount').textContent=`${f.length} demanda${f.length!==1?'s':''}`;document.getElementById('badgeD').textContent=demandas.length;document.getElementById('dContainer').innerHTML=cVMD==='cards'?(f.length?`<div class="pg">${f.map(dCard).join('')}</div>`:emptyS('demanda')):renderListaD(f);}
+
+// [ALTERAÇÃO] dCard exibe badge de responsável
+function dCard(d){return`<div class="pc dem-card" onclick="showDetalhe(${d.id},'demanda')"><div class="pct"><div class="pch"><div class="pname azul">${d.nome}</div><span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span></div><div class="pdesc">${d.desc||'Sem descrição.'}</div><div class="pmeta"><div class="mi">📅 ${fd(d.prazo)}</div>${d.solicitante?`<div class="mi">✉️ ${d.solicitante}</div>`:''}<div class="mi">${respBadge(d.responsavel)}</div><div class="mi" style="color:${d.prioridade==='alta'?'var(--danger)':d.prioridade==='media'?'var(--warn)':'var(--ok)'}">${d.prioridade}</div></div></div><div class="pcb" onclick="event.stopPropagation()"><div class="ptags">${(d.tags||[]).map(t=>`<span class="tag azul">${t}</span>`).join('')}</div><div class="pacts"><button class="ib" onclick="openUpdD(${d.id})" title="Atualizar">💬</button><button class="ib" onclick="editD(${d.id})" title="Editar">✏️</button><button class="ib" onclick="delD(${d.id})" title="Excluir">🗑</button></div></div></div>`;}
+
+// [ALTERAÇÃO] renderListaD inclui coluna Responsável
+function renderListaD(f){return f.length?`<div style="background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--sh)"><table style="width:100%;border-collapse:collapse"><thead><tr style="background:var(--azul)">${['Demanda','Status','Prazo','Solicitante','Responsável','Ações'].map(h=>`<th style="padding:9px 12px;color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;text-align:left">${h}</th>`).join('')}</tr></thead><tbody>${f.map(d=>`<tr style="border-bottom:1px solid var(--border)"><td style="padding:10px 12px;cursor:pointer" onclick="showDetalhe(${d.id},'demanda')"><strong style="color:var(--azul);font-size:12px">${d.nome}</strong><br><span style="font-size:10px;color:var(--muted)">${(d.desc||'').substring(0,50)}${(d.desc||'').length>50?'...':''}</span></td><td style="padding:10px 12px"><span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span></td><td style="padding:10px 12px;font-size:11px">${fd(d.prazo)}</td><td style="padding:10px 12px;font-size:11px">${d.solicitante||'—'}</td><td style="padding:10px 12px">${respBadge(d.responsavel)}</td><td style="padding:10px 12px"><div style="display:flex;gap:3px"><button class="ib" onclick="showDetalhe(${d.id},'demanda')">👁</button><button class="ib" onclick="openUpdD(${d.id})">💬</button><button class="ib" onclick="editD(${d.id})">✏️</button><button class="ib" onclick="delD(${d.id})" style="color:var(--danger)">🗑</button></div></td></tr>`).join('')}</tbody></table></div>`:emptyS('demanda');}
+</script>
+
+<script>
+// ── [ALTERAÇÃO] Páginas de Responsáveis ───────────────────────
+// Filtra itens (projetos + demandas) de um responsável específico
+function getItemsResp(resp) {
+  let ps = projetos.filter(p => pertenceA(p, resp));
+  let ds = demandas.filter(d => pertenceA(d, resp));
+  return { ps, ds };
+}
+
+// [ALTERAÇÃO] Aplica filtros da página do responsável
+function getFilteredResp(resp) {
+  const filter = resp === 'ana' ? cFilterAna : cFilterRafael;
+  const search = resp === 'ana' ? cSearchAna : cSearchRafael;
+  let { ps, ds } = getItemsResp(resp);
+
+  if(filter === 'projetos') { ds = []; }
+  else if(filter === 'demandas') { ps = []; }
+  else if(filter === 'andamento') {
+    ps = ps.filter(p => p.status === 'andamento');
+    ds = ds.filter(d => d.status === 'em-andamento');
+  } else if(filter === 'concluido') {
+    ps = ps.filter(p => p.status === 'concluido');
+    ds = ds.filter(d => d.status === 'resolvida');
+  }
+
+  if(search) {
+    const q = search.toLowerCase();
+    ps = ps.filter(p => p.nome.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q));
+    ds = ds.filter(d => d.nome.toLowerCase().includes(q) || (d.desc||'').toLowerCase().includes(q));
+  }
+  return { ps, ds };
+}
+
+// [ALTERAÇÃO] Renderiza mini-Kanban para a página do responsável
+function renderKanbanResp(ps, containerId, cor) {
+  const cols = [{k:'planejamento',l:'Planejamento'},{k:'andamento',l:'Em andamento'},{k:'atrasado',l:'Atrasado'},{k:'concluido',l:'Concluído'}];
+  document.getElementById(containerId).innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+      ${cols.map(col => {
+        const its = ps.filter(p => p.status === col.k);
+        return `<div class="kcol">
+          <div class="kch"><span class="kct" style="color:${cor}">${col.l}</span><span class="knum" style="background:${cor}">${its.length}</span></div>
+          ${its.map(p=>`<div class="kcard" onclick="showDetalhe(${p.id},'projeto')">
+            <div class="kcn" style="color:${cor}">${p.nome}</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:5px">${fd(p.prazo)}</div>
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:9px;color:var(--muted)">Progresso</span><span style="font-size:10px;font-weight:700">${p.progresso}%</span></div>
+            <div class="kpbar"><div class="kpfill" style="width:${p.progresso}%;background:${cor}"></div></div>
+          </div>`).join('')}
+          ${its.length===0?`<div style="text-align:center;padding:12px;font-size:11px;color:var(--muted)">Nenhum</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// [ALTERAÇÃO] Renderiza página da Ana
+function renderAna() {
+  const { ps, ds } = getFilteredResp('ana');
+  const total = getItemsResp('ana');
+  const vm = cVMAna;
+  document.getElementById('anaCount').textContent =
+    `${total.ps.length} projeto${total.ps.length!==1?'s':''} · ${total.ds.length} demanda${total.ds.length!==1?'s':''}`;
+
+  // Mini-Kanban de projetos da Ana
+  renderKanbanResp(total.ps, 'anaKanban', 'var(--ana)');
+
+  // Cards/Lista combinados
+  let html = '';
+  if(vm === 'cards') {
+    const cardsP = ps.map(p => pCardResp(p, 'ana')).join('');
+    const cardsD = ds.map(d => dCardResp(d, 'ana')).join('');
+    html = (cardsP || cardsD)
+      ? `<div class="pg">${cardsP}${cardsD}</div>`
+      : emptyS('projeto');
+  } else {
+    html = renderListaResp(ps, ds, 'ana');
+  }
+  document.getElementById('anaContainer').innerHTML = html;
+  document.getElementById('badgeAna').textContent = total.ps.length + total.ds.length;
+}
+
+// [ALTERAÇÃO] Renderiza página do Rafael
+function renderRafael() {
+  const { ps, ds } = getFilteredResp('rafael');
+  const total = getItemsResp('rafael');
+  const vm = cVMRafael;
+  document.getElementById('rafaelCount').textContent =
+    `${total.ps.length} projeto${total.ps.length!==1?'s':''} · ${total.ds.length} demanda${total.ds.length!==1?'s':''}`;
+
+  renderKanbanResp(total.ps, 'rafaelKanban', 'var(--rafael)');
+
+  let html = '';
+  if(vm === 'cards') {
+    const cardsP = ps.map(p => pCardResp(p, 'rafael')).join('');
+    const cardsD = ds.map(d => dCardResp(d, 'rafael')).join('');
+    html = (cardsP || cardsD)
+      ? `<div class="pg">${cardsP}${cardsD}</div>`
+      : emptyS('projeto');
+  } else {
+    html = renderListaResp(ps, ds, 'rafael');
+  }
+  document.getElementById('rafaelContainer').innerHTML = html;
+  document.getElementById('badgeRafael').textContent = total.ps.length + total.ds.length;
+}
+
+// [ALTERAÇÃO] Card de projeto para página de responsável (com cor temática)
+function pCardResp(p, resp) {
+  const cor = resp === 'ana' ? 'var(--ana)' : 'var(--rafael)';
+  return `<div class="pc" style="border-top:3px solid ${cor}" onclick="showDetalhe(${p.id},'projeto')">
+    <div class="pct">
+      <div class="pch"><div class="pname" style="color:${cor}">${p.nome}</div><span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span></div>
+      <div class="pdesc">${p.desc||'Sem descrição.'}</div>
+      <div class="pmeta"><div class="mi">📅 ${fd(p.prazo)}</div><div class="mi">📁 Projeto</div>${p.solicitante?`<div class="mi">✉️ ${p.solicitante}</div>`:''}</div>
+      <div class="pbw"><div class="pbl"><span>Progresso</span><span style="font-weight:700">${p.progresso}%</span></div>
+      <div class="pbar"><div class="pfill ${p.status==='atrasado'?'atr':''}" style="width:${p.progresso}%;background:${cor}"></div></div></div>
+    </div>
+    <div class="pcb" onclick="event.stopPropagation()">
+      <div class="ptags">${(p.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="pacts"><button class="ib" onclick="openUpdP(${p.id})">💬</button><button class="ib" onclick="editP(${p.id})">✏️</button></div>
+    </div>
+  </div>`;
+}
+
+// [ALTERAÇÃO] Card de demanda para página de responsável
+function dCardResp(d, resp) {
+  const cor = resp === 'ana' ? 'var(--ana)' : 'var(--rafael)';
+  return `<div class="pc dem-card" style="border-left-color:${cor}" onclick="showDetalhe(${d.id},'demanda')">
+    <div class="pct">
+      <div class="pch"><div class="pname" style="color:${cor}">${d.nome}</div><span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span></div>
+      <div class="pdesc">${d.desc||'Sem descrição.'}</div>
+      <div class="pmeta"><div class="mi">📅 ${fd(d.prazo)}</div><div class="mi">⚡ Demanda</div>${d.solicitante?`<div class="mi">✉️ ${d.solicitante}</div>`:''}<div class="mi" style="color:${d.prioridade==='alta'?'var(--danger)':d.prioridade==='media'?'var(--warn)':'var(--ok)'}">${d.prioridade}</div></div>
+    </div>
+    <div class="pcb" onclick="event.stopPropagation()">
+      <div class="ptags">${(d.tags||[]).map(t=>`<span class="tag azul">${t}</span>`).join('')}</div>
+      <div class="pacts"><button class="ib" onclick="openUpdD(${d.id})">💬</button><button class="ib" onclick="editD(${d.id})">✏️</button></div>
+    </div>
+  </div>`;
+}
+
+// [ALTERAÇÃO] Lista combinada de projetos e demandas para página de responsável
+function renderListaResp(ps, ds, resp) {
+  const cor = resp === 'ana' ? 'var(--ana)' : 'var(--rafael)';
+  if(!ps.length && !ds.length) return emptyS('projeto');
+  let rows = '';
+  ps.forEach(p => {
+    rows += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 12px;cursor:pointer" onclick="showDetalhe(${p.id},'projeto')">
+        <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--ll);color:#3d5c00;margin-right:5px">PROJETO</span>
+        <strong style="color:${cor};font-size:12px">${p.nome}</strong>
+      </td>
+      <td style="padding:10px 12px"><span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span></td>
+      <td style="padding:10px 12px;font-size:11px">${fd(p.prazo)}</td>
+      <td style="padding:10px 12px;font-size:11px">${p.progresso}%</td>
+      <td style="padding:10px 12px"><div style="display:flex;gap:3px"><button class="ib" onclick="showDetalhe(${p.id},'projeto')">👁</button><button class="ib" onclick="openUpdP(${p.id})">💬</button><button class="ib" onclick="editP(${p.id})">✏️</button></div></td>
+    </tr>`;
+  });
+  ds.forEach(d => {
+    rows += `<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:10px 12px;cursor:pointer" onclick="showDetalhe(${d.id},'demanda')">
+        <span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;background:var(--azull);color:var(--azul);margin-right:5px">DEMANDA</span>
+        <strong style="color:${cor};font-size:12px">${d.nome}</strong>
+      </td>
+      <td style="padding:10px 12px"><span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span></td>
+      <td style="padding:10px 12px;font-size:11px">${fd(d.prazo)}</td>
+      <td style="padding:10px 12px;font-size:11px">—</td>
+      <td style="padding:10px 12px"><div style="display:flex;gap:3px"><button class="ib" onclick="showDetalhe(${d.id},'demanda')">👁</button><button class="ib" onclick="openUpdD(${d.id})">💬</button><button class="ib" onclick="editD(${d.id})">✏️</button></div></td>
+    </tr>`;
+  });
+  return `<div style="background:var(--card);border-radius:10px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--sh)">
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="background:${cor}">${['Item','Status','Prazo','Progresso','Ações'].map(h=>`<th style="padding:9px 12px;color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;text-align:left">${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+// [ALTERAÇÃO] Filtros para páginas de responsáveis
+function filterResp(f, btn, resp) {
+  if(resp==='ana') cFilterAna=f;
+  else cFilterRafael=f;
+  const fbId = resp==='ana' ? 'fbAna' : 'fbRafael';
+  document.querySelectorAll(`#${fbId} .fbt`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(resp==='ana') renderAna(); else renderRafael();
+}
+function searchResp(v, resp) {
+  if(resp==='ana') { cSearchAna=v; renderAna(); }
+  else { cSearchRafael=v; renderRafael(); }
+}
+
+// ── Kanban ────────────────────────────────────────────────────
+function renderKanban(){
+  const cols=[{k:'planejamento',l:'Planejamento',c:'#1565c0'},{k:'andamento',l:'Em andamento',c:'#3d5c00'},{k:'atrasado',l:'Atrasado',c:'var(--danger)'},{k:'concluido',l:'Concluído',c:'var(--ok)'}];
+  document.getElementById('kanbanBoard').innerHTML=cols.map(col=>{
+    const its=projetos.filter(p=>p.status===col.k);
+    return `<div class="kcol"><div class="kch"><span class="kct" style="color:${col.c}">${col.l}</span><span class="knum">${its.length}</span></div>
+      ${its.map(p=>`<div class="kcard" onclick="showDetalhe(${p.id},'projeto')">
+        <div class="kcn">${p.nome}</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">${respBadge(p.responsavel)}</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:9px;color:var(--muted)">Progresso</span><span style="font-size:10px;font-weight:700">${p.progresso}%</span></div>
+        <div class="kpbar"><div class="kpfill" style="width:${p.progresso}%;background:${col.c}"></div></div>
+      </div>`).join('')}
+      ${its.length===0?`<div style="text-align:center;padding:16px;font-size:11px;color:var(--muted)">Nenhum</div>`:''}
+    </div>`;
+  }).join('');
+}
+</script>
+
+<script>
+// ── Detalhe Projeto ───────────────────────────────────────────
+function showDetalhe(id, tipo){
+  currentDId=id; currentTipo=tipo;
+  if(tipo==='projeto'){
+    lastView = document.querySelector('.view.active').id.replace('view-','') || 'projetos';
+    const p=projetos.find(x=>x.id===id); if(!p)return;
+    showView('detalhe');
+    document.getElementById('detContent').innerHTML=`
+    <div class="dh"><div>
+      <div style="margin-bottom:6px"><span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span></div>
+      <div class="dt">${p.nome}</div>
+      <div class="dmeta">
+        <div class="dmi">📅 Início: <strong>${fd(p.inicio)}</strong></div>
+        <div class="dmi">🏁 Prazo: <strong>${fd(p.prazo)}</strong></div>
+        <div class="dmi">👤 ${respBadge(p.responsavel)}</div>
+        <div class="dmi">📈 <strong>${p.progresso}%</strong></div>
+        ${p.solicitante?`<div class="dmi">✉️ <strong>${p.solicitante}</strong></div>`:''}
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+      <button class="btn bp bsm" onclick="openUpdP(${p.id})">+ Atualização</button>
+      <button class="btn bsm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="editP(${p.id})">Editar</button>
+      ${p.linkTeams?`<a href="${p.linkTeams}" target="_blank" class="btn bsm bteams">💬 Teams</a>`:''}
+      ${p.linkPasta?`<a href="${p.linkPasta}" target="_blank" class="btn bsm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)">📁 Pasta</a>`:''}
+    </div></div>
+    <div class="dgrid">
+      <div>
+        <div class="dcard"><div class="dch"><span class="dct">📋 Descrição</span></div><div class="dcb">
+          <p style="font-size:12px;line-height:1.6;color:var(--text)">${p.desc||'Sem descrição.'}</p>
+          ${(p.tags||[]).length?`<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+        </div></div>
+        ${p.dev?`<div class="dcard"><div class="dch"><span class="dct">⚙️ Desenvolvimento</span></div><div class="dcb"><p style="font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap">${p.dev}</p></div></div>`:''}
+        ${p.arquivo?`<div class="dcard"><div class="dch"><span class="dct">📄 Arquivos da Pasta</span></div><div class="dcb"><div class="arquivo-text">${p.arquivo}</div></div></div>`:''}
+        ${p.emailOrigem?`<div class="dcard"><div class="dch"><span class="dct">✉️ E-mail de Origem</span></div><div class="dcb"><p style="font-size:12px;line-height:1.6;color:var(--muted)">${p.emailOrigem}</p></div></div>`:''}
+        <div class="dcard"><div class="dch"><span class="dct">💬 Histórico de Atualizações (${p.updates.length})</span></div><div class="dcb">
+          ${p.updates.length?`<div class="ulist">${[...p.updates].reverse().map(u=>`<div class="uitem"><div class="udot"></div><div class="ucont"><div class="utxt">${u.text}</div>${u.arquivo?`<div class="arquivo-box" style="margin-top:6px"><div class="arquivo-title">📄 Arquivo adicionado</div><div class="arquivo-text">${u.arquivo}</div></div>`:''}<div class="umeta"><span class="uaut">${u.autor}</span><span>${fd(u.data)}</span>${u.status?`<span class="sbadge ${sbC(u.status,'p')}">${slblP(u.status)}</span>`:''}${u.progresso!==undefined?`<span style="font-weight:600;color:var(--verde)">${u.progresso}%</span>`:''}</div></div></div>`).join('')}</div>`:'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Sem atualizações.</div>'}
+        </div></div>
+      </div>
+      <div>
+        <div class="dcard"><div class="dch"><span class="dct">Progresso</span></div><div class="dcb" style="text-align:center">
+          <div style="font-family:'Syne',sans-serif;font-size:40px;font-weight:800;color:var(--verde)">${p.progresso}%</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">concluído</div>
+          <div class="pbar" style="height:8px;border-radius:4px"><div class="pfill" style="width:${p.progresso}%;background:${p.status==='atrasado'?'var(--danger)':p.progresso>=100?'var(--ok)':'var(--lima)'}"></div></div>
+        </div></div>
+        <div class="dcard"><div class="dch"><span class="dct">Informações</span></div><div class="dcb">
+          ${[
+            ['Status',`<span class="sbadge ${sbC(p.status,'p')}">${slblP(p.status)}</span>`],
+            ['Prioridade',p.prioridade],
+            ['Responsável',respBadge(p.responsavel)],
+            ['Solicitante',p.solicitante||'—'],
+            ['Início',fd(p.inicio)],
+            ['Prazo',fd(p.prazo)],
+            ['Atualizações',p.updates.length]
+          ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;color:var(--muted)">${l}</span><span style="font-size:11px;font-weight:500">${v}</span></div>`).join('')}
+        </div></div>
+        <div class="dcard"><div class="dch"><span class="dct">🔗 Links</span></div><div class="dcb">
+          <div class="lrow"><span class="llbl">💬 Teams</span>${p.linkTeams?`<a href="${p.linkTeams}" target="_blank" class="la la-t">Abrir ↗</a>`:`<span class="la la-off">Não configurado</span>`}</div>
+          <div class="lrow"><span class="llbl">📁 SharePoint</span>${p.linkPasta?`<a href="${p.linkPasta}" target="_blank" class="la la-p">Abrir ↗</a>`:`<span class="la la-off">Não configurado</span>`}</div>
+          <div class="lrow"><span class="llbl">📄 Relatório</span>${p.status==='concluido'?`<button onclick="abrirRel(${p.id},'projeto')" class="la la-r">Gerar ↗</button>`:`<span class="la la-off">Após concluir</span>`}</div>
+        </div></div>
+      </div>
+    </div>`;
+  } else {
+    lastView = document.querySelector('.view.active').id.replace('view-','') || 'demandas';
+    const d=demandas.find(x=>x.id===id); if(!d)return;
+    showView('detalhe-dem');
+    document.getElementById('detContentDem').innerHTML=`
+    <div class="dh azul"><div>
+      <div style="margin-bottom:6px"><span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span></div>
+      <div class="dt">${d.nome}</div>
+      <div class="dmeta">
+        <div class="dmi">📅 Prazo: <strong>${fd(d.prazo)}</strong></div>
+        ${d.solicitante?`<div class="dmi">✉️ <strong>${d.solicitante}</strong></div>`:''}
+        <div class="dmi">Prioridade: <strong>${d.prioridade}</strong></div>
+        <div class="dmi">👤 ${respBadge(d.responsavel)}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+      <button class="btn bp-azul bsm" onclick="openUpdD(${d.id})">+ Atualização</button>
+      <button class="btn bsm" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)" onclick="editD(${d.id})">Editar</button>
+    </div></div>
+    <div class="dgrid">
+      <div>
+        <div class="dcard"><div class="dch"><span class="dct azul">📋 Descrição</span></div><div class="dcb">
+          <p style="font-size:12px;line-height:1.6;color:var(--text)">${d.desc||'Sem descrição.'}</p>
+          ${(d.tags||[]).length?`<div style="margin-top:10px;display:flex;gap:5px;flex-wrap:wrap">${d.tags.map(t=>`<span class="tag azul">${t}</span>`).join('')}</div>`:''}
+        </div></div>
+        ${d.emailOrigem?`<div class="dcard"><div class="dch"><span class="dct azul">✉️ E-mail de Origem</span></div><div class="dcb"><p style="font-size:12px;line-height:1.6;color:var(--muted)">${d.emailOrigem}</p></div></div>`:''}
+        <div class="dcard"><div class="dch"><span class="dct azul">💬 Histórico (${d.updates.length})</span></div><div class="dcb">
+          ${d.updates.length?`<div class="ulist">${[...d.updates].reverse().map(u=>`<div class="uitem"><div class="udot" style="background:var(--azul);border-color:var(--azul)"></div><div class="ucont"><div class="utxt">${u.text}</div><div class="umeta"><span class="uaut" style="color:var(--azul)">${u.autor}</span><span>${fd(u.data)}</span>${u.status?`<span class="sbadge ${sbC(u.status,'d')}">${slblD(u.status)}</span>`:''}</div></div></div>`).join('')}</div>`:'<div style="text-align:center;padding:20px;color:var(--muted);font-size:12px">Sem atualizações.</div>'}
+        </div></div>
+      </div>
+      <div>
+        <div class="dcard"><div class="dch"><span class="dct azul">Informações</span></div><div class="dcb">
+          ${[
+            ['Status',`<span class="sbadge ${sbC(d.status,'d')}">${slblD(d.status)}</span>`],
+            ['Prioridade',d.prioridade],
+            ['Responsável',respBadge(d.responsavel)],
+            ['Solicitante',d.solicitante||'—'],
+            ['Prazo',fd(d.prazo)],
+            ['Atualizações',d.updates.length]
+          ].map(([l,v])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)"><span style="font-size:11px;color:var(--muted)">${l}</span><span style="font-size:11px;font-weight:500">${v}</span></div>`).join('')}
+        </div></div>
+      </div>
+    </div>`;
+  }
+}
+</script>
+
+<script>
+// ── Relatório ─────────────────────────────────────────────────
+function abrirRel(id,tipo){
+  const p=projetos.find(x=>x.id===id); if(!p)return;
+  document.getElementById('relBody').innerHTML=`
+  <div style="background:var(--verde);border-radius:8px;padding:16px 20px;margin-bottom:16px">
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:#fff;margin-bottom:3px">${p.nome}</div>
+    <div style="font-size:11px;color:rgba(255,255,255,.6)">Relatório Final · ${new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'})}</div>
+  </div>
+  <div class="rs"><div class="rst">📋 Resumo</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${[['Projeto',p.nome],['Status',slblP(p.status)],['Responsável',p.responsavel||'—'],['Solicitante',p.solicitante||'—'],['Início',fd(p.inicio)],['Entrega',fd(p.prazo)],['Duração',calcDur(p.inicio,p.prazo)],['Progresso',p.progresso+'%']].map(([l,v])=>`<div style="background:#fff;border-radius:6px;padding:8px 12px;border:1px solid var(--border)"><div style="font-size:9px;color:var(--muted);font-weight:600;text-transform:uppercase;margin-bottom:2px">${l}</div><div style="font-size:12px;font-weight:600;color:var(--verde)">${v}</div></div>`).join('')}
+    </div>
+  </div>
+  ${p.desc?`<div class="rs"><div class="rst">📝 Descrição</div><p style="font-size:12px;line-height:1.7;color:var(--text)">${p.desc}</p></div>`:''}
+  ${p.dev?`<div class="rs"><div class="rst">⚙️ Desenvolvimento</div><p style="font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap">${p.dev}</p></div>`:''}
+  <div class="rs"><div class="rst">📅 Linha do tempo</div>
+    ${p.updates.length?`<div style="position:relative;padding-left:18px;border-left:2px solid var(--lima)">${p.updates.map((u,i)=>`<div style="position:relative;margin-bottom:12px"><div style="position:absolute;left:-23px;top:4px;width:8px;height:8px;border-radius:50%;background:${i===p.updates.length-1?'var(--lima)':'var(--border)'};border:2px solid var(--verde)"></div><div style="background:#fff;border-radius:7px;padding:10px;border:1px solid var(--border)"><div style="font-size:10px;color:var(--muted);margin-bottom:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span style="font-weight:600;color:var(--verde)">${u.autor}</span><span>${fd(u.data)}</span>${u.status?`<span class="sbadge ${sbC(u.status,'p')}">${slblP(u.status)}</span>`:''}${u.progresso!==undefined?`<span style="font-weight:700;color:var(--verde)">${u.progresso}%</span>`:''}</div><p style="font-size:12px;color:var(--text);line-height:1.5;margin:0">${u.text}</p></div></div>`).join('')}</div>`:`<p style="color:var(--muted);font-size:12px">Sem atualizações.</p>`}
+  </div>
+  <div style="margin-top:14px;padding:14px 18px;background:var(--ol);border-radius:8px;border:1px solid #b2dfdb;display:flex;align-items:center;gap:10px">
+    <div style="font-size:22px">✅</div>
+    <div><div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--ok)">Projeto Concluído com Sucesso</div><div style="font-size:11px;color:var(--ok);opacity:.8">CEI — Priner</div></div>
+  </div>`;
+  document.getElementById('mRel').classList.add('open');
+}
+function calcDur(a,b){if(!a||!b)return'—';const d=Math.round((new Date(b)-new Date(a))/864e5);return d<0?'—':d===0?'1 dia':`${d} dias`;}
+function copiarRel(){navigator.clipboard.writeText(document.getElementById('relBody').innerText).then(()=>toast('📋 Copiado!'));}
+
+// ── Modais ────────────────────────────────────────────────────
+function openModal(tipo){
+  if(tipo==='projeto'){
+    editPId=null;
+    document.getElementById('mPTitle').textContent='Novo Projeto';
+    ['ePId','fPNome','fPDesc','fPDev','fPProg','fPTags','fPTeams','fPPasta','fPSolic','fPEmail','fPInicio','fPPrazo','fPArquivo'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fPStatus').value='planejamento';
+    document.getElementById('fPPrio').value='media';
+    // [ALTERAÇÃO] Reseta select de responsável
+    document.getElementById('fPResp').value='';
+    document.getElementById('mProjeto').classList.add('open');
+  } else {
+    editDId=null;
+    document.getElementById('mDTitle').textContent='Nova Demanda';
+    ['eDId','fDNome','fDDesc','fDSolic','fDTags','fDEmail','fDPrazo'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('fDStatus').value='pendente';
+    document.getElementById('fDPrio').value='media';
+    // [ALTERAÇÃO] Reseta select de responsável da demanda
+    document.getElementById('fDResp').value='';
+    document.getElementById('mDemanda').classList.add('open');
+  }
+}
+// [ALTERAÇÃO] closeM inclui 'import' para modal de importação
+function closeM(t){
+  const map={projeto:'mProjeto',demanda:'mDemanda',updP:'mUpdP',updD:'mUpdD',rel:'mRel',import:'mImport'};
+  document.getElementById(map[t]).classList.remove('open');
+}
+
+// [ALTERAÇÃO] editP preenche select de responsável
+function editP(id){
+  const p=projetos.find(x=>x.id===id);if(!p)return;
+  editPId=id;
+  document.getElementById('mPTitle').textContent='Editar Projeto';
+  document.getElementById('ePId').value=id;
+  document.getElementById('fPNome').value=p.nome;
+  document.getElementById('fPDesc').value=p.desc||'';
+  document.getElementById('fPDev').value=p.dev||'';
+  document.getElementById('fPStatus').value=p.status;
+  document.getElementById('fPPrio').value=p.prioridade;
+  document.getElementById('fPInicio').value=p.inicio||'';
+  document.getElementById('fPPrazo').value=p.prazo||'';
+  document.getElementById('fPProg').value=p.progresso;
+  // [ALTERAÇÃO] Preenche select responsável
+  document.getElementById('fPResp').value=p.responsavel||'';
+  document.getElementById('fPTags').value=(p.tags||[]).join(', ');
+  document.getElementById('fPTeams').value=p.linkTeams||'';
+  document.getElementById('fPPasta').value=p.linkPasta||'';
+  document.getElementById('fPSolic').value=p.solicitante||'';
+  document.getElementById('fPEmail').value=p.emailOrigem||'';
+  document.getElementById('fPArquivo').value=p.arquivo||'';
+  document.getElementById('mProjeto').classList.add('open');
+}
+
+// [ALTERAÇÃO] editD preenche select de responsável da demanda
+function editD(id){
+  const d=demandas.find(x=>x.id===id);if(!d)return;
+  editDId=id;
+  document.getElementById('mDTitle').textContent='Editar Demanda';
+  document.getElementById('eDId').value=id;
+  document.getElementById('fDNome').value=d.nome;
+  document.getElementById('fDDesc').value=d.desc||'';
+  document.getElementById('fDStatus').value=d.status;
+  document.getElementById('fDPrio').value=d.prioridade;
+  document.getElementById('fDPrazo').value=d.prazo||'';
+  document.getElementById('fDSolic').value=d.solicitante||'';
+  // [ALTERAÇÃO] Preenche select responsável da demanda
+  document.getElementById('fDResp').value=d.responsavel||'';
+  document.getElementById('fDTags').value=(d.tags||[]).join(', ');
+  document.getElementById('fDEmail').value=d.emailOrigem||'';
+  document.getElementById('mDemanda').classList.add('open');
+}
+
+// [ALTERAÇÃO] salvarProjeto lê campo responsavel do select
+async function salvarProjeto(){
+  const nome=document.getElementById('fPNome').value.trim();if(!nome){toast('⚠️ Informe o nome!',false);return;}
+  const btn=document.getElementById('btnSalvarP');btn.textContent='⏳ Salvando...';btn.disabled=true;
+  const dados={
+    nome,
+    desc:document.getElementById('fPDesc').value.trim(),
+    dev:document.getElementById('fPDev').value.trim(),
+    status:document.getElementById('fPStatus').value,
+    prioridade:document.getElementById('fPPrio').value,
+    inicio:document.getElementById('fPInicio').value,
+    prazo:document.getElementById('fPPrazo').value,
+    progresso:parseInt(document.getElementById('fPProg').value)||0,
+    // [ALTERAÇÃO] Lê responsável do select (Ana/Rafael/Ambos)
+    responsavel:document.getElementById('fPResp').value,
+    tags:document.getElementById('fPTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    linkTeams:document.getElementById('fPTeams').value.trim(),
+    linkPasta:document.getElementById('fPPasta').value.trim(),
+    solicitante:document.getElementById('fPSolic').value.trim(),
+    emailOrigem:document.getElementById('fPEmail').value.trim(),
+    arquivo:document.getElementById('fPArquivo').value.trim()
+  };
+  try{
+    if(editPId){dados.updates=projetos.find(x=>x.id===editPId).updates;await spUpdate(SP_LIST_P,editPId,pToSp(dados));const i=projetos.findIndex(x=>x.id===editPId);projetos[i]={...projetos[i],...dados};toast('✅ Projeto atualizado!');}
+    else{dados.updates=[];const cr=await spCreate(SP_LIST_P,pToSp(dados));dados.id=cr.ID;projetos.unshift(dados);toast('✅ Projeto criado!');}
+    closeM('projeto');renderAll();
+  }catch(e){toast('❌ Erro ao salvar.',false);console.error(e);}
+  finally{btn.textContent='Salvar Projeto';btn.disabled=false;}
+}
+
+// [ALTERAÇÃO] salvarDemanda lê campo responsavel do select
+async function salvarDemanda(){
+  const nome=document.getElementById('fDNome').value.trim();if(!nome){toast('⚠️ Informe o título!',false);return;}
+  const btn=document.getElementById('btnSalvarD');btn.textContent='⏳ Salvando...';btn.disabled=true;
+  const dados={
+    nome,
+    desc:document.getElementById('fDDesc').value.trim(),
+    status:document.getElementById('fDStatus').value,
+    prioridade:document.getElementById('fDPrio').value,
+    prazo:document.getElementById('fDPrazo').value,
+    solicitante:document.getElementById('fDSolic').value.trim(),
+    // [ALTERAÇÃO] Lê responsável do select da demanda
+    responsavel:document.getElementById('fDResp').value,
+    tags:document.getElementById('fDTags').value.split(',').map(t=>t.trim()).filter(Boolean),
+    emailOrigem:document.getElementById('fDEmail').value.trim()
+  };
+  try{
+    if(editDId){dados.updates=demandas.find(x=>x.id===editDId).updates;await spUpdate(SP_LIST_D,editDId,dToSp(dados));const i=demandas.findIndex(x=>x.id===editDId);demandas[i]={...demandas[i],...dados};toast('✅ Demanda atualizada!');}
+    else{dados.updates=[];const cr=await spCreate(SP_LIST_D,dToSp(dados));dados.id=cr.ID;demandas.unshift(dados);toast('✅ Demanda criada!');}
+    closeM('demanda');renderAll();
+  }catch(e){toast('❌ Erro ao salvar.',false);console.error(e);}
+  finally{btn.textContent='Salvar Demanda';btn.disabled=false;}
+}
+
+async function delP(id){if(!confirm('Excluir este projeto?'))return;try{await spDelete(SP_LIST_P,id);projetos=projetos.filter(p=>p.id!==id);renderAll();toast('🗑 Projeto excluído.');}catch(e){toast('❌ Erro.',false);}}
+async function delD(id){if(!confirm('Excluir esta demanda?'))return;try{await spDelete(SP_LIST_D,id);demandas=demandas.filter(d=>d.id!==id);renderAll();toast('🗑 Demanda excluída.');}catch(e){toast('❌ Erro.',false);}}
+
+function openUpdP(id){document.getElementById('uPPId').value=id;['fPUpdT','fPUpdArq','fPUpdP'].forEach(i=>document.getElementById(i).value='');document.getElementById('fPUpdS').value='';document.getElementById('mUpdP').classList.add('open');}
+function openUpdD(id){document.getElementById('uDId').value=id;document.getElementById('fDUpdT').value='';document.getElementById('fDUpdS').value='';document.getElementById('mUpdD').classList.add('open');}
+
+async function salvarUpdP(){
+  const text=document.getElementById('fPUpdT').value.trim();if(!text){toast('⚠️ Escreva a atualização!',false);return;}
+  const id=parseInt(document.getElementById('uPPId').value);const p=projetos.find(x=>x.id===id);if(!p)return;
+  const btn=document.getElementById('btnUpdP');btn.textContent='⏳...';btn.disabled=true;
+  const ns=document.getElementById('fPUpdS').value,npStr=document.getElementById('fPUpdP').value,np=npStr!==''?parseInt(npStr):p.progresso;
+  const arq=document.getElementById('fPUpdArq').value.trim();
+  const upd={text,data:new Date().toISOString().split('T')[0],autor:SP_USER,status:ns||p.status,progresso:np};
+  if(arq)upd.arquivo=arq;
+  const newUpds=[...p.updates,upd];
+  const novoArquivo=arq?(p.arquivo?p.arquivo+'\n\n---\n\n'+arq:arq):p.arquivo;
+  try{
+    await spUpdate(SP_LIST_P,id,{Status:ns||p.status,Progresso:np,Atualizacoes:JSON.stringify(newUpds),Arquivo:novoArquivo||''});
+    p.updates=newUpds;if(ns)p.status=ns;p.progresso=np;if(novoArquivo)p.arquivo=novoArquivo;
+    closeM('updP');toast('✅ Atualização salva!');renderAll();
+    const av=document.querySelector('.view.active');
+    if(av.id==='view-projetos')renderProjetos();
+    if(av.id==='view-detalhe')showDetalhe(id,'projeto');
+    if(av.id==='view-ana')renderAna();
+    if(av.id==='view-rafael')renderRafael();
+  }catch(e){toast('❌ Erro.',false);console.error(e);}
+  finally{btn.textContent='Registrar';btn.disabled=false;}
+}
+
+async function salvarUpdD(){
+  const text=document.getElementById('fDUpdT').value.trim();if(!text){toast('⚠️ Escreva a atualização!',false);return;}
+  const id=parseInt(document.getElementById('uDId').value);const d=demandas.find(x=>x.id===id);if(!d)return;
+  const btn=document.getElementById('btnUpdD');btn.textContent='⏳...';btn.disabled=true;
+  const ns=document.getElementById('fDUpdS').value;
+  const upd={text,data:new Date().toISOString().split('T')[0],autor:SP_USER,status:ns||d.status};
+  const newUpds=[...d.updates,upd];
+  try{
+    await spUpdate(SP_LIST_D,id,{Status:ns||d.status,Atualizacoes:JSON.stringify(newUpds)});
+    d.updates=newUpds;if(ns)d.status=ns;
+    closeM('updD');toast('✅ Atualização salva!');renderAll();
+    const av=document.querySelector('.view.active');
+    if(av.id==='view-demandas')renderDemandas();
+    if(av.id==='view-detalhe-dem')showDetalhe(id,'demanda');
+    if(av.id==='view-ana')renderAna();
+    if(av.id==='view-rafael')renderRafael();
+  }catch(e){toast('❌ Erro.',false);console.error(e);}
+  finally{btn.textContent='Registrar';btn.disabled=false;}
+}
+</script>
+
+<script>
+// ── Filtros ───────────────────────────────────────────────────
+function filterP(f,btn){cFilterP=f;document.querySelectorAll('#view-projetos .fbt').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderProjetos();}
+function filterD(f,btn){cFilterD=f;document.querySelectorAll('#view-demandas .fbt').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderDemandas();}
+function searchP(v,t){if(t==='p'){cSearchP=v;renderProjetos();}else{cSearchD=v;renderDemandas();}}
+function setVM(m,btn,t){
+  if(t==='p'){
+    cVMP=m;
+    document.querySelectorAll('#view-projetos .fbt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');renderProjetos();
+  } else if(t==='d'){
+    cVMD=m;
+    document.querySelectorAll('#view-demandas .fbt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');renderDemandas();
+  // [ALTERAÇÃO] setVM para páginas de responsáveis
+  } else if(t==='ana'){
+    cVMAna=m;
+    document.querySelectorAll('#view-ana .fbt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');renderAna();
+  } else if(t==='rafael'){
+    cVMRafael=m;
+    document.querySelectorAll('#view-rafael .fbt').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');renderRafael();
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────
+function sbC(s,t){if(t==='d')return{pendente:'s-pen','em-andamento':'s-em',resolvida:'s-con'}[s]||'s-pau';return{andamento:'s-and',atrasado:'s-atr',concluido:'s-con',pausado:'s-pau',planejamento:'s-pla'}[s]||'s-pau';}
+function slblP(s){return{andamento:'Em andamento',atrasado:'Atrasado',concluido:'Concluído',pausado:'Pausado',planejamento:'Planejamento'}[s]||s;}
+function slblD(s){return{pendente:'Pendente','em-andamento':'Em execução',resolvida:'Resolvida'}[s]||s;}
+function fd(d){if(!d)return'—';const[y,m,dy]=d.split('-');return`${dy}/${m}/${y}`;}
+function emptyS(t){return`<div class="empty"><div class="ei">${t==='projeto'?'📁':'⚡'}</div><div class="et">Nenhum${t==='demanda'?'a':''} ${t} encontrado${t==='demanda'?'a':''}</div><div style="font-size:12px">Crie um novo ou ajuste os filtros.</div></div>`;}
+function toast(msg,ok=true){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(ok?' tl':'');setTimeout(()=>t.classList.remove('show'),3500);}
+
+// ── [ALTERAÇÃO] Importação Excel via SheetJS ──────────────────
+function openImport(){
+  importData={projetos:[],demandas:[]};
+  document.getElementById('importPreview').innerHTML='';
+  document.getElementById('importSummary').textContent='';
+  document.getElementById('btnConfirmImport').style.display='none';
+  document.getElementById('fileInput').value='';
+  document.getElementById('mImport').classList.add('open');
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('importZone').classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(file) handleFile(file);
+}
+
+function handleFile(file){
+  if(!file) return;
+  if(!file.name.match(/\.(xlsx|xls)$/i)){toast('⚠️ Selecione um arquivo .xlsx ou .xls',false);return;}
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=new Uint8Array(e.target.result);
+      const wb=XLSX.read(data,{type:'array'});
+      importData={projetos:[],demandas:[]};
+      let preview='';
+
+      // [ALTERAÇÃO] Lê aba "Projetos" da planilha
+      if(wb.SheetNames.includes('Projetos')){
+        const ws=wb.Sheets['Projetos'];
+        const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        importData.projetos=rows.map((r,idx)=>({
+          id: -(idx+1), // IDs temporários negativos
+          nome: r['Nome']||r['Title']||r['Projeto']||'',
+          desc: r['Descricao']||r['Descrição']||'',
+          dev: r['Desenvolvimento']||'',
+          status: normalizeStatus(r['Status']||'planejamento','p'),
+          prioridade: (r['Prioridade']||'media').toLowerCase(),
+          progresso: parseInt(r['Progresso'])||0,
+          inicio: normalizeDate(r['DataInicio']||r['Data Início']||''),
+          prazo: normalizeDate(r['DataPrazo']||r['Data Prazo']||''),
+          // [ALTERAÇÃO] Lê responsável da planilha
+          responsavel: normalizeResp(r['Responsavel']||r['Responsável']||''),
+          tags: r['Tags']?String(r['Tags']).split(',').map(t=>t.trim()).filter(Boolean):[],
+          linkTeams: r['LinkTeams']||r['Link Teams']||'',
+          linkPasta: r['LinkPasta']||r['Link Pasta']||'',
+          solicitante: r['Solicitante']||'',
+          emailOrigem: r['EmailOrigem']||'',
+          arquivo: r['Arquivo']||'',
+          updates:[]
+        })).filter(p=>p.nome);
+
+        preview+=`<p style="font-size:11px;font-weight:600;color:var(--verde);margin:10px 0 5px">📁 Projetos encontrados: ${importData.projetos.length}</p>`;
+        if(importData.projetos.length){
+          preview+=`<table><thead><tr><th>Nome</th><th>Status</th><th>Responsável</th><th>Prazo</th></tr></thead><tbody>`;
+          importData.projetos.slice(0,10).forEach(p=>{
+            preview+=`<tr><td>${p.nome}</td><td>${slblP(p.status)}</td><td>${p.responsavel||'—'}</td><td>${fd(p.prazo)}</td></tr>`;
+          });
+          if(importData.projetos.length>10) preview+=`<tr><td colspan="4" style="text-align:center;color:var(--muted)">... e mais ${importData.projetos.length-10} projetos</td></tr>`;
+          preview+=`</tbody></table>`;
+        }
+      }
+
+      // [ALTERAÇÃO] Lê aba "Demandas" da planilha
+      if(wb.SheetNames.includes('Demandas')){
+        const ws=wb.Sheets['Demandas'];
+        const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+        importData.demandas=rows.map((r,idx)=>({
+          id: -(1000+idx+1),
+          nome: r['Nome']||r['Title']||r['Demanda']||'',
+          desc: r['Descricao']||r['Descrição']||'',
+          status: normalizeStatus(r['Status']||'pendente','d'),
+          prioridade: (r['Prioridade']||'media').toLowerCase(),
+          prazo: normalizeDate(r['DataPrazo']||r['Data Prazo']||''),
+          solicitante: r['Solicitante']||'',
+          // [ALTERAÇÃO] Lê responsável da demanda na planilha
+          responsavel: normalizeResp(r['Responsavel']||r['Responsável']||''),
+          tags: r['Tags']?String(r['Tags']).split(',').map(t=>t.trim()).filter(Boolean):[],
+          emailOrigem: r['EmailOrigem']||'',
+          updates:[]
+        })).filter(d=>d.nome);
+
+        preview+=`<p style="font-size:11px;font-weight:600;color:var(--azul);margin:10px 0 5px">⚡ Demandas encontradas: ${importData.demandas.length}</p>`;
+        if(importData.demandas.length){
+          preview+=`<table><thead><tr><th>Nome</th><th>Status</th><th>Responsável</th><th>Prazo</th></tr></thead><tbody>`;
+          importData.demandas.slice(0,10).forEach(d=>{
+            preview+=`<tr><td>${d.nome}</td><td>${slblD(d.status)}</td><td>${d.responsavel||'—'}</td><td>${fd(d.prazo)}</td></tr>`;
+          });
+          if(importData.demandas.length>10) preview+=`<tr><td colspan="4" style="text-align:center;color:var(--muted)">... e mais ${importData.demandas.length-10} demandas</td></tr>`;
+          preview+=`</tbody></table>`;
+        }
+      }
+
+      if(!importData.projetos.length && !importData.demandas.length){
+        document.getElementById('importPreview').innerHTML='<p style="color:var(--danger);font-size:12px;margin-top:10px">⚠️ Nenhuma aba "Projetos" ou "Demandas" encontrada. Verifique os nomes das abas na planilha.</p>';
+        return;
+      }
+
+      document.getElementById('importPreview').innerHTML=preview;
+      document.getElementById('importSummary').textContent=`✅ Pronto para importar: ${importData.projetos.length} projeto(s) e ${importData.demandas.length} demanda(s)`;
+      document.getElementById('btnConfirmImport').style.display='inline-flex';
+    }catch(err){
+      toast('❌ Erro ao ler o arquivo Excel.',false);
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// [ALTERAÇÃO] Normaliza status para valores internos
+function normalizeStatus(s, tipo) {
+  const v = String(s).toLowerCase().trim();
+  if(tipo==='p'){
+    if(v.includes('andamento')||v.includes('ativo')) return 'andamento';
+    if(v.includes('atrasado')) return 'atrasado';
+    if(v.includes('conclu')) return 'concluido';
+    if(v.includes('pausado')||v.includes('pause')) return 'pausado';
+    return 'planejamento';
+  } else {
+    if(v.includes('andamento')||v.includes('execu')) return 'em-andamento';
+    if(v.includes('resolv')||v.includes('conclu')) return 'resolvida';
+    return 'pendente';
+  }
+}
+
+// [ALTERAÇÃO] Normaliza responsável para Ana/Rafael/Ambos
+function normalizeResp(r) {
+  const v = String(r).toLowerCase().trim();
+  if(v.includes('ana') && v.includes('rafael')) return 'Ambos';
+  if(v.includes('ambos') || v.includes('both')) return 'Ambos';
+  if(v.includes('ana')) return 'Ana';
+  if(v.includes('rafael')) return 'Rafael';
+  return r; // mantém original se não reconhecido
+}
+
+// [ALTERAÇÃO] Normaliza datas do Excel (número serial ou string)
+function normalizeDate(d) {
+  if(!d) return '';
+  if(typeof d === 'number') {
+    // Excel serial date
+    const date = new Date((d - 25569) * 86400 * 1000);
+    return date.toISOString().split('T')[0];
+  }
+  const s = String(d).trim();
+  if(s.match(/^\d{4}-\d{2}-\d{2}$/)) return s;
+  if(s.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+    const [dd,mm,yyyy]=s.split('/');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return s;
+}
+
+// [ALTERAÇÃO] Confirma importação: adiciona dados localmente (sem SP automático)
+async function confirmarImport(){
+  const btn=document.getElementById('btnConfirmImport');
+  btn.textContent='⏳ Importando...';btn.disabled=true;
+  let pCount=0, dCount=0, erros=0;
+
+  // Importa projetos para SP e array local
+  for(const p of importData.projetos){
+    try{
+      const cr=await spCreate(SP_LIST_P,pToSp(p));
+      p.id=cr.ID;
+      projetos.unshift(p);
+      pCount++;
+    }catch(e){
+      // Se SP falhar, adiciona apenas localmente com ID temporário
+      projetos.unshift(p);
+      pCount++;
+      erros++;
+      console.warn('SP create failed, added locally:',e);
+    }
+  }
+
+  // Importa demandas para SP e array local
+  for(const d of importData.demandas){
+    try{
+      const cr=await spCreate(SP_LIST_D,dToSp(d));
+      d.id=cr.ID;
+      demandas.unshift(d);
+      dCount++;
+    }catch(e){
+      demandas.unshift(d);
+      dCount++;
+      erros++;
+      console.warn('SP create failed, added locally:',e);
+    }
+  }
+
+  closeM('import');
+  renderAll();
+  const msg = erros > 0
+    ? `✅ ${pCount} projetos e ${dCount} demandas importados (${erros} apenas local — verifique SP)`
+    : `✅ ${pCount} projetos e ${dCount} demandas importados com sucesso!`;
+  toast(msg);
+  btn.textContent='✅ Confirmar Importação';btn.disabled=false;
+}
+
+// ── Init ──────────────────────────────────────────────────────
+document.getElementById('topDate').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'});
+loadAll();
+</script>
+</body>
+</html>
